@@ -1,0 +1,6454 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>考研政治 · 背诵手册交互学习站</title>
+<style>
+:root{
+  --paper:#EAF1F7;
+  --paper-2:#F3F8FC;
+  --ink:#12324A;
+  --ink-2:#2B4a63;
+  --mute:#5C7386;
+  --line:rgba(18,50,74,.16);
+  --line-2:rgba(18,50,74,.07);
+  --accent:#1478B5;
+  --accent-ink:#0C5C8F;
+  --red:#C23A2E;
+  --amber:#A86A12;
+  --grid:rgba(18,50,74,.045);
+  --mono:"JetBrains Mono","Cascadia Mono",Consolas,"SFMono-Regular",monospace;
+  --sans:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font:13px/1.58 var(--sans);
+  -webkit-font-smoothing:antialiased;
+  letter-spacing:.1px;
+}
+/* 蓝图网格 + 流沙画布 */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:26px 26px;
+}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.85}
+/* 四角角标外框 */
+.frame{position:fixed;inset:10px;z-index:6;pointer-events:none;border:1px solid var(--line)}
+.frame i{position:absolute;width:13px;height:13px;border:0 solid var(--accent)}
+.frame i:nth-child(1){left:-1px;top:-1px;border-left-width:2px;border-top-width:2px}
+.frame i:nth-child(2){right:-1px;top:-1px;border-right-width:2px;border-top-width:2px}
+.frame i:nth-child(3){left:-1px;bottom:-1px;border-left-width:2px;border-bottom-width:2px}
+.frame i:nth-child(4){right:-1px;bottom:-1px;border-right-width:2px;border-bottom-width:2px}
+
+button{font:inherit;cursor:pointer}
+a{color:var(--accent-ink);text-decoration:none}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* 顶栏：规格区 */
+.top{position:sticky;top:0;z-index:30;background:rgba(234,241,247,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 22px 9px;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;gap:1px}
+.brand h1{font-size:19px;margin:0;font-weight:700;line-height:1.1;letter-spacing:.2px}
+.brand .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--mute);text-transform:uppercase}
+.spec{display:flex;gap:14px;margin-left:auto;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--mute);text-transform:uppercase;flex-wrap:wrap;padding-bottom:2px}
+.spec b{color:var(--accent-ink);font-weight:600}
+.search{flex:1;min-width:230px;max-width:430px;position:relative}
+.search input{width:100%;padding:7px 11px 7px 30px;border:1px solid var(--line);border-radius:0;background:var(--paper-2);font-size:12.5px;outline:none;color:var(--ink);font-family:var(--sans)}
+.search input:focus{border-color:var(--accent);background:#fff}
+.search::before{content:"⌕";position:absolute;left:10px;top:5px;color:var(--mute);font-size:14px}
+
+/* 布局 */
+.layout{display:flex;align-items:flex-start;position:relative;z-index:1}
+.sidebar{width:250px;flex:0 0 250px;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;border-right:1px solid var(--line);padding:12px 10px 40px;background:rgba(243,248,252,.62)}
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(18,50,74,.2)}
+.side-head{font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--mute);text-transform:uppercase;padding:4px 8px 10px;border-bottom:1px solid var(--line-2);margin-bottom:8px;display:flex;justify-content:space-between}
+.part{margin-bottom:2px}
+.part-head{display:flex;align-items:center;gap:7px;padding:7px 8px;cursor:pointer;user-select:none;font-weight:600;font-size:12.5px;border-left:2px solid transparent}
+.part-head:hover{background:rgba(20,120,181,.06);border-left-color:var(--accent)}
+.part-dot{width:7px;height:7px;flex:0 0 7px}
+.part-num{font-family:var(--mono);font-size:9.5px;color:var(--mute);margin-left:auto;letter-spacing:.05em}
+.part-caret{font-size:8px;color:var(--mute);transition:transform .15s;width:8px;text-align:center}
+.part.open .part-caret{transform:rotate(90deg)}
+.sec-list{display:none;padding:2px 0 6px 0}
+.part.open .sec-list{display:block}
+.sec{padding:5px 8px 5px 16px;font-size:11.5px;color:var(--mute);border-left:2px solid transparent;cursor:pointer;line-height:1.38;display:flex;gap:6px}
+.sec:hover{color:var(--ink);background:rgba(20,120,181,.05)}
+.sec.active{color:var(--ink);background:rgba(20,120,181,.1);border-left-color:var(--accent);font-weight:600}
+.sec .st{font-family:var(--mono);font-size:9px;color:#8aa0b2;margin-left:auto;padding-top:1px}
+.sec .sn{font-family:var(--mono);font-size:9.5px;color:#8aa0b2;flex:0 0 auto;padding-top:1px}
+.sec .sx{flex:1;min-width:0}
+
+.main{flex:1;min-width:0;padding:18px 26px 90px;max-width:1180px}
+
+/* 面包屑 / 标题：Hermes 巨型字 + line-height 1 */
+.crumb{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--mute);text-transform:uppercase;margin-bottom:8px}
+h2.sec-title{font-size:30px;margin:0 0 6px;font-weight:700;line-height:1.02;letter-spacing:-.2px}
+h2.sec-title.sm{font-size:21px}
+.sec-sub{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--mute);text-transform:uppercase;margin-bottom:16px;display:flex;gap:14px;flex-wrap:wrap}
+.rule{height:1px;background:var(--line);margin:14px 0}
+.card{background:rgba(255,255,255,.66);border:1px solid var(--line);border-radius:0;padding:13px 16px;margin-bottom:11px}
+.card:hover{border-color:rgba(20,120,181,.42);background:rgba(255,255,255,.85)}
+
+/* 考点列表：极细分隔线 */
+.plist{list-style:none;margin:0;padding:0}
+.plist li{display:flex;gap:9px;padding:6px 0;border-bottom:1px solid var(--line-2);line-height:1.62}
+.plist li:last-child{border-bottom:none}
+.badge{flex:0 0 auto;font-family:var(--mono);font-size:9px;font-weight:700;padding:1px 5px;height:17px;line-height:15px;letter-spacing:.06em;border:1px solid}
+.b5{color:var(--red);border-color:rgba(194,58,46,.45);background:rgba(194,58,46,.07)}
+.b4{color:var(--amber);border-color:rgba(168,106,18,.42);background:rgba(168,106,18,.07)}
+.b3{color:var(--mute);border-color:var(--line);background:rgba(18,50,74,.03)}
+.ptext{flex:1}
+
+/* 首页统计 */
+.stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);background:rgba(255,255,255,.6);margin-bottom:16px}
+.stat{padding:14px 16px;border-right:1px solid var(--line)}
+.stat:last-child{border-right:none}
+.stat .n{font-family:var(--mono);font-size:34px;font-weight:700;line-height:1;color:var(--accent-ink);letter-spacing:-1px}
+.stat .l{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--mute);text-transform:uppercase;margin-top:5px}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:10px}
+.home-card{border:1px solid var(--line);background:rgba(255,255,255,.6);padding:12px 14px;cursor:pointer;position:relative}
+.home-card:hover{border-color:var(--accent);background:#fff}
+.home-card .hc-top{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.home-card .hc-name{font-weight:700;font-size:13px;line-height:1.3}
+.home-card .hc-num{font-family:var(--mono);font-size:9px;color:var(--mute);margin-left:auto;letter-spacing:.08em}
+.home-card .hc-desc{font-size:11px;color:var(--mute);line-height:1.5}
+.home-card .hc-bar{height:2px;background:var(--accent);margin-top:9px;opacity:.85}
+
+/* 史纲时间线 */
+.era-tabs{display:flex;gap:0;flex-wrap:wrap;border:1px solid var(--line);margin-bottom:10px}
+.era-tab{padding:6px 11px;background:transparent;border:none;border-right:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--mute);text-transform:uppercase}
+.era-tab:last-child{border-right:none}
+.era-tab:hover{background:rgba(20,120,181,.06);color:var(--ink)}
+.era-tab.active{background:var(--ink);color:#fff}
+.filter-bar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.filter-bar .lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--mute);text-transform:uppercase}
+.chip{padding:4px 10px;border:1px solid var(--line);background:transparent;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--mute);text-transform:uppercase}
+.chip:hover{border-color:var(--accent);color:var(--accent-ink)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.tl{position:relative;margin-left:2px}
+.tl::before{content:"";position:absolute;left:78px;top:0;bottom:0;width:1px;background:var(--line)}
+.tl-item{position:relative;display:flex;gap:14px;padding:8px 0;cursor:pointer}
+.tl-item:hover{background:rgba(20,120,181,.05)}
+.detail-text{font-size:13.5px;line-height:1.95;color:var(--ink)}
+.chip.back{margin-bottom:14px;background:var(--accent);color:#fff;border-color:var(--accent);letter-spacing:.08em}
+.chip.back:hover{background:var(--accent-ink);color:#fff}
+.back-chip{border-color:var(--accent);color:#fff;background:var(--accent);letter-spacing:.08em}
+.back-chip:hover{background:var(--accent-ink);color:#fff}
+.tl-year{flex:0 0 78px;text-align:right;font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--accent-ink);padding-top:1px;font-variant-numeric:tabular-nums}
+.tl-dot{position:absolute;left:74px;top:13px;width:9px;height:9px;background:var(--paper);border:2px solid var(--accent);z-index:1}
+.tl-dot.s5{border-color:var(--red);background:var(--red)}
+.tl-body{flex:1;padding-left:18px}
+.tl-ev{font-weight:700;font-size:13px;margin-bottom:1px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.tl-p{font-size:11.5px;color:var(--ink-2);margin-bottom:1px}
+.tl-m{font-size:11.5px;color:var(--mute);line-height:1.55}
+.tl-m b{color:var(--red);font-weight:600}
+/* 贯通层：毛中特 / 习思想 / 思修 */
+.tl-layers{margin-top:6px;display:flex;flex-direction:column;gap:3px}
+.tl-layer{font-size:11px;line-height:1.5;padding-left:8px;border-left:2px solid;color:var(--ink-2)}
+.tl-layer .ll{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;margin-right:6px;color:var(--mute);text-transform:uppercase}
+.tl-layer.mz{border-left-color:#5b4fc4}
+.tl-layer.xx{border-left-color:#a34d9e}
+.tl-layer.sx{border-left-color:#14786f}
+.tl-layer.go{cursor:pointer}
+.tl-layer.go:hover{background:rgba(20,120,181,.06);color:var(--ink)}
+.tl-layer.go::after{content:"↗";font-family:var(--mono);font-size:9px;color:var(--accent);margin-left:6px;opacity:.55}
+.tl-legend{display:flex;gap:14px;flex-wrap:wrap;margin:-4px 0 12px}
+.tl-legend span{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--mute);display:flex;align-items:center;gap:5px}
+.tl-legend i{width:8px;height:8px;display:inline-block}
+.tl-freq{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:#9D174D;border:1px solid rgba(157,23,77,.35);padding:0 4px;background:rgba(157,23,77,.06)}
+.pl-div{list-style:none;margin:12px 0 4px;padding:5px 8px;background:rgba(18,50,74,.05);border-left:3px solid var(--accent);font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--accent-ink);text-transform:uppercase}
+.pl-div:first-child{margin-top:0}
+
+.empty{padding:44px;text-align:center;color:var(--mute);font-size:12px;border:1px dashed var(--line)}
+.hidden{display:none!important}
+mark{background:rgba(20,120,181,.16);color:inherit;padding:0 1px}
+.footer-note{margin-top:24px;font-size:10.5px;color:var(--mute);line-height:1.7;border-top:1px solid var(--line);padding-top:10px;font-family:var(--mono)}
+.footer-note a{color:var(--accent-ink)}
+
+/* 刷题解疑 */
+.qa-input{width:100%;min-height:120px;border:1px solid var(--line);background:var(--paper-2);padding:10px 12px;font:13px/1.6 var(--sans);color:var(--ink);resize:vertical;outline:none}
+.qa-input:focus{border-color:var(--accent);background:#fff}
+.qa-actions{display:flex;gap:8px;align-items:center;margin-top:9px}
+.qa-actions .lab{margin-left:auto;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--mute);text-transform:uppercase}
+.qa-hintline{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 10px}
+.qa-tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;padding:2px 7px;border:1px solid var(--line);color:var(--mute);background:rgba(255,255,255,.62)}
+.qa-tag.cap{border-color:rgba(194,58,46,.42);color:var(--red)}
+.qa-tag.abs{border-color:rgba(168,106,18,.45);color:var(--amber)}
+.qa-loc{padding:7px 0;border-bottom:1px dashed var(--line-2);cursor:pointer;font-size:12.5px;line-height:1.5}
+.qa-loc:last-child{border-bottom:none}
+.qa-loc:hover{color:var(--accent-ink)}
+.qa-loc b{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--accent-ink);margin-right:6px}
+.qa-src{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:#8aa0b2;margin-top:2px}
+.qa-answer{border:1px solid rgba(20,120,181,.38);background:rgba(20,120,181,.055);padding:14px 16px;margin-bottom:12px}
+.qa-ans{font-size:14px;line-height:1.78;color:var(--ink);font-weight:500}
+.qa-key{font-family:var(--mono);color:var(--accent-ink);font-weight:700;background:rgba(20,120,181,.13);padding:0 3px}
+.qa-ans-src{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--mute);margin-top:8px;text-transform:uppercase}
+.qa-opt{width:100%;border-collapse:collapse;font-size:11.5px;line-height:1.55}
+.qa-opt th{text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--mute);text-transform:uppercase;border-bottom:1px solid var(--line);padding:5px 6px}
+.qa-opt td{border-bottom:1px solid var(--line-2);padding:7px 6px;vertical-align:top}
+.qa-opt td:first-child{width:44%}
+.qa-opt .oc b{font-family:var(--mono);color:var(--accent-ink);margin-right:4px}
+.qa-warn{display:inline-block;margin-left:5px;font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;color:var(--amber);border:1px solid rgba(168,106,18,.4);padding:0 4px}
+.qa-miss{color:#8aa0b2}
+.qa-note{font-size:10.5px;color:var(--mute);margin-top:8px;line-height:1.6}
+.qa-verdict{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;padding:1px 5px;border:1px solid;white-space:nowrap}
+.qa-verdict.ok{color:#0a7a3f;border-color:rgba(10,122,63,.45);background:rgba(10,122,63,.07)}
+.qa-verdict.mid{color:var(--amber);border-color:rgba(168,106,18,.45);background:rgba(168,106,18,.07)}
+.qa-verdict.no{color:#8aa0b2;border-color:var(--line);background:rgba(18,50,74,.03)}
+.qa-suggest{margin-top:10px;font-size:13px;color:var(--ink);border-top:1px solid var(--line);padding-top:9px}
+.qa-suggest b{font-family:var(--mono);font-size:15px;color:var(--accent-ink);letter-spacing:.05em}
+.qa-conf{font-family:var(--mono);font-size:9.5px;color:var(--mute);margin-left:6px}
+.ai-answer{font-size:13px;line-height:1.95;color:var(--ink)}
+.ai-answer b{color:var(--accent-ink)}
+.qa-loading{font-size:12px;color:var(--mute);font-family:var(--mono);letter-spacing:.04em}
+.qa-keyrow{display:flex;gap:8px;margin-top:10px}
+.qa-key{flex:1;border:1px solid var(--line);background:var(--panel);padding:8px 10px;font-family:var(--mono);font-size:12px;color:var(--ink);outline:none}
+.qa-key:focus{border-color:var(--accent)}
+#menuBtn{display:none}
+@media (max-width:860px){
+  #menuBtn{display:inline-block}
+  .brand h1{font-size:16px}
+  .spec{display:none}
+  .sidebar{position:fixed;left:0;top:60px;z-index:40;transform:translateX(-100%);transition:.2s;background:var(--paper-2)}
+  .sidebar.show{transform:none;box-shadow:8px 0 24px rgba(18,50,74,.12)}
+  .main{padding:14px 14px 90px}
+  h2.sec-title{font-size:23px}
+  .stat-grid{grid-template-columns:1fr}
+  .stat{border-right:none;border-bottom:1px solid var(--line)}
+  .tl::before{left:58px}.tl-year{flex-basis:58px}.tl-dot{left:54px}
+}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<div class="top">
+  <button id="menuBtn" class="chip">☰</button>
+  <div class="brand">
+    <div class="tag">POSTGRADUATE POLITICS / STUDY CONSOLE</div>
+    <h1>考研政治 · 背诵手册</h1>
+  </div>
+  <button id="globalBack" class="chip back-chip" style="display:none">← 返回</button>
+  <div class="spec"><span>STUDY SHEET <b>2027</b></span>
+      <span>UPDATED <b>2026-11-08 20:58</b></span>
+      <span><b>123</b> SECTIONS</span>
+      <span><b>939</b> POINTS</span>
+      <span><b>90</b> TIMELINE</span></div>
+  <button id="qaBtn" class="chip" title="粘贴题目或提问">刷题解疑</button>
+  <div class="search"><input id="search" placeholder="搜索考点 / 事件 / 会议 / 人物（如：遵义会议、量变质变）" autocomplete="off"></div>
+</div>
+<div class="layout">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="main" id="main"></main>
+</div>
+<script>
+
+const DATA = {
+ "meta": {
+  "title": "考研政治 · 背诵手册交互学习站",
+  "subtitle": "肖秀荣《2027考研政治背诵手册》上册 · 五大板块 · 点击左侧切换",
+  "source": "OCR 自 238 页扫描件，个别字可能有识别误差，以原书为准"
+ },
+ "parts": [
+  {
+   "id": "mayuan",
+   "name": "马克思主义基本原理",
+   "short": "马原",
+   "color": "#2563eb",
+   "sections": [
+    {
+     "no": "专题一",
+     "title": "导论",
+     "points": [
+      {
+       "t": "马克思主义产生的社会根源是资本主义经济的发展，阶级基础是无产阶级在反抗资产阶级剥削和压迫的斗争中逐步走向自觉并迫切渴望科学理论指导。",
+       "s": 4
+      },
+      {
+       "t": "马克思主义的思想渊源是 19 世纪西欧三大先进思潮（德国古典哲学、英国古典政治经济学、英法空想社会主义）和 19 世纪三大科学发现（细胞学说、能量守恒与转化定律、生物进化论）。",
+       "s": 4
+      },
+      {
+       "t": "《德意志意识形态》首次系统阐述了历史唯物主义的基本观点、实现了历史观上的伟大变革，《反杜林论》全面阐述了马克思主义理论体系。",
+       "s": 4
+      },
+      {
+       "t": "《关于费尔巴哈的提纲》是包含着新世界观天才萌芽的第一个文件，系统论述了实践观点、揭示了科学实践观的基本内容；《神圣家族》是马克思恩格斯合著的第一部著作。",
+       "s": 3
+      },
+      {
+       "t": "《资本论》系统阐述了剩余价值学说，被称为“工人阶级的圣经”；《哥达纲领批判》对未来社会从制度、发展阶段和分配等方面作了原则构想。",
+       "s": 3
+      },
+      {
+       "t": "马克思主义的基本特征是科学性、人民性、实践性、发展性，一句话概括就是科学性与革命性的统一。",
+       "s": 4
+      },
+      {
+       "t": "人民性是马克思主义的本质属性，实践观点是马克思主义首要的和基本的观点，实践性是马克思主义理论区别于其他理论的根本特征。",
+       "s": 4
+      },
+      {
+       "t": "马克思主义提供的是进一步研究的出发点和研究方法，而不是现成的教条（出现“现成答案”“现成理想方案”多为干扰项）。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题二",
+     "title": "世界的物质性",
+     "points": [
+      {
+       "t": "哲学基本问题是存在和思维的关系问题，包括二者谁为本原（第一性）和是否具有同一性（思维能否正确反映存在）两个方面。",
+       "s": 4
+      },
+      {
+       "t": "主观唯心主义把人的感觉、观念作为世界本原（关键词“心”“观念”“感觉”），客观唯心主义把脱离物质和个人的精神（“理”“绝对观念”）作为世界本原。",
+       "s": 3
+      },
+      {
+       "t": "物质的唯一特性是客观实在性，物质是不依赖于人类意识而存在并能为人类意识所反映的客观实在；世界上只有尚未认识之物，没有不可认识之物。",
+       "s": 5
+      },
+      {
+       "t": "运动是物质的根本属性和存在方式，物质和运动不可分割：设想不运动的物质会导致形而上学，设想无物质的运动会导致唯心主义。",
+       "s": 4
+      },
+      {
+       "t": "运动是绝对的、无条件的，静止是相对的、有条件的；否认绝对运动会走向形而上学不变论，借口绝对运动否认相对静止会导致相对主义诡辩论。",
+       "s": 4
+      },
+      {
+       "t": "时间和空间是运动着的物质的基本存在形式、具有客观性，时间是一维的；时空的客观实在性是绝对的、具体特性是相对的，具体物质形态的时空有限而整个物质世界的时空无限。",
+       "s": 4
+      },
+      {
+       "t": "物质世界的二重化指从自然界分化出人类社会、从客观世界分化出主观世界，人的实践活动是二者相分化和相统一的关键。",
+       "s": 3
+      },
+      {
+       "t": "世界的真正统一性在于它的物质性，世界的物质统一性是多样性的统一，这一原理是辩证唯物主义最基本、最核心的观点，是马克思主义的基石。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题三",
+     "title": "物质与意识的辩证关系",
+     "points": [
+      {
+       "t": "意识是自然界长期发展的产物，也是社会历史发展的产物，社会实践特别是劳动在意识的产生和发展中起决定作用，语言是思维的物质外壳和意识的现实形式。",
+       "s": 4
+      },
+      {
+       "t": "意识的本质是人脑这种特殊物质的机能和属性，是客观世界的主观映象，内容上是客观的、形式上是主观的；人脑是意识的器官但不是意识的源泉，源泉是客观世界。",
+       "s": 4
+      },
+      {
+       "t": "意识具有目的性和计划性、创造性、指导实践改造客观世界、调控人的行为和生理活动等能动作用。",
+       "s": 4
+      },
+      {
+       "t": "尊重客观规律是正确发挥主观能动性的前提，只有充分发挥主观能动性才能正确认识和利用客观规律；从实际出发是前提，实践是根本途径，还要依赖一定的物质条件和手段。",
+       "s": 5
+      },
+      {
+       "t": "规律是事物变化发展过程中固有的内在的、本质的、必然的联系，与必然性、本质是同等程度的概念；规律客观，人不能创造、消灭、改变规律，但可以认识和利用。",
+       "s": 4
+      },
+      {
+       "t": "自然规律作为盲目的无意识力量自发起作用，社会规律通过抱有一定目的和意图的人的有意识活动实现；社会规律是历史的，在不同社会、国家、民族和历史阶段有不同表现形式。",
+       "s": 3
+      },
+      {
+       "t": "人工智能能把人的部分智能活动机器化、物化为机器的物理运动，但无法真正具有人的意识，不具备情感、信念、意志等人类意识形式，也不可能真正具备人的社会属性。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题四",
+     "title": "事物的普遍联系和变化发展",
+     "points": [
+      {
+       "t": "联系和发展是唯物辩证法的总观点，集中体现了唯物辩证法的总特征。",
+       "s": 4
+      },
+      {
+       "t": "联系具有客观性、普遍性、多样性和条件性；条件对事物发展和人的活动起支持或制约作用，条件可以改变，但改变和创造条件必须尊重客观规律。",
+       "s": 4
+      },
+      {
+       "t": "发展的实质是新事物的产生和旧事物的灭亡，发展是事物变化中前进的、上升的运动。",
+       "s": 4
+      },
+      {
+       "t": "新事物不可战胜，因为它有新的要素、结构和功能并适应已经变化了的环境和条件，是对旧事物的扬弃并添加了旧事物所不能容纳的新内容。",
+       "s": 3
+      },
+      {
+       "t": "新事物不等于新出现的事物，判断标准是是否符合历史前进方向、具有远大前途，而不取决于形式的新旧和出现时间的先后。",
+       "s": 3
+      },
+      {
+       "t": "一切事物都是过程、世界是过程的集合体，唯物辩证法本质上是批判的，从现实的暂时性和发展的永恒性的统一来理解一切事物。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题五",
+     "title": "对立统一规律",
+     "points": [
+      {
+       "t": "对立统一规律是唯物辩证法的实质和核心：它揭示了事物普遍联系的根本内容和变化发展的内在动力，是贯穿其他规律和范畴的中心线索，并提供了矛盾分析这一根本方法。",
+       "s": 5
+      },
+      {
+       "t": "矛盾的同一性是有条件的、相对的，斗争性是无条件的、绝对的；斗争性寓于同一性之中，同一性通过斗争性来体现，二者结合共同推动事物的变化发展。",
+       "s": 5
+      },
+      {
+       "t": "矛盾的普遍性即共性是无条件的、绝对的，特殊性即个性是有条件的、相对的，共性寓于个性之中，没有离开个性的共性，也没有离开共性的个性。",
+       "s": 5
+      },
+      {
+       "t": "矛盾力量不平衡：主要矛盾处于支配地位、对事物发展起决定作用，矛盾的主要方面处于支配地位、起主导作用，事物的性质由主要矛盾的主要方面决定。",
+       "s": 5
+      },
+      {
+       "t": "矛盾是反映事物内部或事物之间对立统一关系的哲学范畴，解决矛盾的形式多种多样（一方克服另一方、双方同归于尽、双方形成协同运动的新形式、双方融合成一个新事物）。",
+       "s": 3
+      },
+      {
+       "t": "一般和个别的关系不同于整体和部分的关系（水果与苹果是一般和个别，汽车与零部件是整体和部分）。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题六",
+     "title": "量变质变规律",
+     "points": [
+      {
+       "t": "度是保持事物质的稳定性的数量界限，两端叫关节点或临界点，超出度的范围此物就转化为他物，这要求在认识和处理问题时掌握适度原则。",
+       "s": 4
+      },
+      {
+       "t": "认识质是认识和实践的起点和基础，只有认识质才能区别事物；认识事物的量是认识的深化和精确化。",
+       "s": 3
+      },
+      {
+       "t": "量变是质变的必要准备，质变是量变的必然结果并为新的量变开辟道路，量变和质变相互渗透。",
+       "s": 4
+      },
+      {
+       "t": "量变是保持事物质的相对稳定性的不显著变化、体现发展渐进过程的连续性，质变是事物性质的根本变化、体现渐进过程和连续性的中断。",
+       "s": 3
+      },
+      {
+       "t": "质和事物的存在是直接同一的，量不直接与事物的存在同一，一定范围内的量变不改变事物的质。",
+       "s": 3
+      },
+      {
+       "t": "总的量变过程中有阶段性和局部性的部分质变，质变中包含旧质的量的收缩和新质的量的扩张。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题七",
+     "title": "辩证否定观",
+     "points": [
+      {
+       "t": "辩证否定的实质是“扬弃”，即新事物对旧事物既批判又继承，既克服其消极因素又保留其积极因素。",
+       "s": 4
+      },
+      {
+       "t": "否定是事物的自我否定、自我发展，是事物内部矛盾运动的结果；否定既是事物发展的环节，也是新旧事物联系的环节。",
+       "s": 4
+      },
+      {
+       "t": "否定之否定规律表明事物发展经历两次否定、三个阶段（肯定—否定—否定之否定），呈现出周期性，总趋势是波浪式前进或螺旋式上升。",
+       "s": 4
+      },
+      {
+       "t": "否定之否定规律揭示了事物发展的前进性与曲折性的统一，事物的发展不是直线式前进。",
+       "s": 4
+      },
+      {
+       "t": "否定之否定阶段仿佛是向原来出发点的“回复”，但这是在更高阶段上的回复（如古代朴素辩证法—形而上学—唯物辩证法）。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题八",
+     "title": "联系和发展的基本环节（五对范畴）",
+     "points": [
+      {
+       "t": "内容是事物存在的基础、对形式具有决定作用，形式对内容具有反作用；同一内容可以通过多种形式体现，同一种形式也可以表现不同的内容。",
+       "s": 4
+      },
+      {
+       "t": "本质是一般的、普遍的、相对稳定的并深藏于事物内部，只有通过理性思维才能把握；现象是个别的、具体的、多变易逝的，可以直接为人的感官所感知。",
+       "s": 4
+      },
+      {
+       "t": "本质决定现象、现象表现本质，不表现为现象的本质和不表现本质的现象都是不存在的。",
+       "s": 4
+      },
+      {
+       "t": "原因与结果在一定条件下相互转化，但在具体因果联系中原因在前、结果在后，二者不能混淆和颠倒，没有“无果之因”也没有“无因之果”。",
+       "s": 3
+      },
+      {
+       "t": "必然与偶然相互依存、相互转化，必然总是通过偶然表现出来，偶然不是决定事物发展的根本因素但不可忽视，必然性与本质是同等程度的范畴。",
+       "s": 4
+      },
+      {
+       "t": "现实是当下的客观存在、可能是事物潜在的趋势，二者相互转化；可能与不可能的区别在于现实中有无根据和条件，现实可能与抽象可能的区别在于根据和条件是否充分。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题九",
+     "title": "唯物辩证法是认识世界和改造世界的根本方法",
+     "points": [
+      {
+       "t": "唯物辩证法是客观辩证法与主观辩证法的统一，主观辩证法是客观辩证法在人的思维中的反映，二者是反映与被反映的关系。",
+       "s": 3
+      },
+      {
+       "t": "客观辩证法采取外部必然性的形式，主观辩证法采取观念的、逻辑的形式，二者在本质上统一而表现形式不同。",
+       "s": 3
+      },
+      {
+       "t": "六大思维能力是辩证思维能力、历史思维能力、系统思维能力、战略思维能力、底线思维能力和创新思维能力，其中辩证思维、创新思维曾多次命制分析题。",
+       "s": 5
+      },
+      {
+       "t": "唯物辩证法是认识世界和改造世界的根本方法。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十",
+     "title": "实践的本质和基本特征",
+     "points": [
+      {
+       "t": "实践是人类能动地改造世界的社会性的物质活动，具有客观实在性、自觉能动性和社会历史性三个基本特征，直接现实性是客观实在性的具体表现。",
+       "s": 4
+      },
+      {
+       "t": "实践的基本结构包括实践主体、实践客体和实践中介（物质性工具系统与语言符号工具系统），主客体之间是实践关系、认识关系和价值关系，其中实践关系最根本。",
+       "s": 4
+      },
+      {
+       "t": "实践的基本类型是物质生产实践、社会政治实践和科学文化实践，其中物质生产实践是人类最基本的实践活动；虚拟实践是实践的派生形式，具有交互性、开放性、间接性。",
+       "s": 3
+      },
+      {
+       "t": "客体不等于客观，客观事物只有被纳入主体实践活动范围、为主体所指向并与主体相互作用时才成为现实的实践客体。",
+       "s": 3
+      },
+      {
+       "t": "实践是认识的来源、发展的动力、目的和检验认识真理性的唯一标准，实践观点是马克思主义首要的和基本的观点。",
+       "s": 5
+      },
+      {
+       "t": "一切真知都从直接经验发源，但一个人的多数知识来自间接经验，这并不违背实践是认识来源的原理。",
+       "s": 4
+      },
+      {
+       "t": "判断一种活动是否为实践，关键看它是否超出纯粹的意识活动、是否改变了除主体意识状态之外的其他存在物的状态。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十一",
+     "title": "认识的本质",
+     "points": [
+      {
+       "t": "认识的本质是主体在实践基础上对客体的能动反映，人的认识是反映性（摹写性）与创造性的统一，二者是同一本质的两个不同方面。",
+       "s": 4
+      },
+      {
+       "t": "唯心主义先验论坚持从思想和感觉到物的路线、认为认识先于实践经验（“生而知之”“认识即回忆”）；唯物主义反映论坚持从物到感觉和思想的路线、认为认识是主体对客体的反映。",
+       "s": 4
+      },
+      {
+       "t": "旧唯物主义是直观的、消极被动的反映论，缺陷在于离开实践考察认识问题、不了解认识的辩证本性，把认识看成一次性完成的。",
+       "s": 4
+      },
+      {
+       "t": "辩证唯物主义是实践基础上能动的反映论，它把实践的观点引入认识论，并把辩证法应用于反映论，把认识看成由不知到知、由浅入深的充满矛盾的能动过程。",
+       "s": 4
+      },
+      {
+       "t": "认识的反映特性指人的认识必然以客观事物为原型和摹本，任何观念都可以从现实世界中找到其物质“原型”。",
+       "s": 3
+      },
+      {
+       "t": "认识的能动创造性指认识不是简单、直接的描摹或照镜子式的原物映现，而是在思维中能动的、创造性的活动（如透过现象看本质）。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十二",
+     "title": "认识的辩证运动",
+     "points": [
+      {
+       "t": "感性认识是对事物现象、外部联系的认识，特点是直接性、具体性、不深刻；理性认识是对事物本质、内部联系的认识，特点是间接性、抽象性、深刻。",
+       "s": 4
+      },
+      {
+       "t": "感性认识与理性认识相互依存：理性认识依赖于感性认识（感性是起点和必经阶段），感性认识有待于发展和深化为理性认识，二者相互渗透、相互包含。",
+       "s": 4
+      },
+      {
+       "t": "从感性认识上升到理性认识需两个条件：获取十分丰富和合乎实际的感性材料（基础），并对感性材料进行去粗取精、去伪存真、由此及彼、由表及里的加工。",
+       "s": 4
+      },
+      {
+       "t": "非理性因素（情感、意志，广义还包括联想、想象、猜测、直觉、顿悟、灵感）对人的认识能力和认识活动具有激活、驱动作用。",
+       "s": 3
+      },
+      {
+       "t": "从认识到实践的第二次飞跃比第一次飞跃更为重要，因为认识世界的目的是改造世界，认识的真理性只有在实践中才能得到检验和发展。",
+       "s": 5
+      },
+      {
+       "t": "实践与认识的辩证运动是实践、认识、再实践、再认识，循环往复以至无穷，是波浪式前进和螺旋式上升的过程。",
+       "s": 3
+      },
+      {
+       "t": "具体的认识过程是“感性认识—理性认识—实践”，认识发展的总过程是“实践—认识—再实践—再认识”。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十三",
+     "title": "真理",
+     "points": [
+      {
+       "t": "真理是标志主观与客观相符合的哲学范畴，是对客观事物及其规律的正确反映，形式是主观的、内容是客观的，客观性是真理的本质属性。",
+       "s": 4
+      },
+      {
+       "t": "真理的一元性指在同一条件下对特定认识客体的真理性认识只有一个、不因主体认识的差别和变化而改变；认识是多元的，真理是一元的。",
+       "s": 3
+      },
+      {
+       "t": "真理的绝对性和相对性是同一客观真理的两种属性（不是两种真理），二者相互依存、相互包含，任何真理性认识都是由真理的相对性向绝对性转化过程中的一个环节。",
+       "s": 4
+      },
+      {
+       "t": "真理绝对性与相对性的根源在于人类认识世界能力的无限性与有限性、绝对性与相对性的矛盾。",
+       "s": 3
+      },
+      {
+       "t": "真理与谬误在确定的对象和范围内对立是绝对的，一种认识不能既是真理又是谬误；二者的对立又是相对的，在一定条件下可以相互转化。",
+       "s": 4
+      },
+      {
+       "t": "实践是检验真理的唯一标准，这是由真理的本性（主观和客观相符合）和实践的特点（直接现实性）决定的；逻辑证明可以起重要补充作用，但不能取代实践。",
+       "s": 5
+      },
+      {
+       "t": "真理是不是客观的，是真理观中的首要问题，一切唯心主义都作否定回答，一切唯物主义都作肯定回答。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十四",
+     "title": "价值",
+     "points": [
+      {
+       "t": "价值是反映主体和客体之间意义关系的哲学范畴，是客体对个人、群体乃至整个社会的生活和活动所具有的意义。",
+       "s": 4
+      },
+      {
+       "t": "价值具有主体性、客观性、多维性和社会历史性四个基本特性。",
+       "s": 4
+      },
+      {
+       "t": "价值的主体性指价值直接与主体相联系、始终以主体为中心，同一客体对不同主体可能具有不同价值，价值随主体、客体以及主客体关系的变化而变化。",
+       "s": 4
+      },
+      {
+       "t": "价值的客观性指价值是客观存在、独立于人们对它的认识和评价，认识和评价可以反映价值但不能创造也不能消灭价值。",
+       "s": 4
+      },
+      {
+       "t": "价值评价是对客观价值关系的主观反映，评价结果与评价主体直接相关、受主体意志影响，评价正确与否依赖于对客体状况和主体需要的认识，价值评价有科学与非科学之别。",
+       "s": 4
+      },
+      {
+       "t": "知识性认识以客观事物及其规律为对象、以求“真”为目的，价值评价以主客体之间的价值关系为对象、以求“善”和“美”为目的。",
+       "s": 3
+      },
+      {
+       "t": "任何成功的实践都是真理尺度和价值尺度的统一，是合规律性和合目的性的统一。",
+       "s": 5
+      },
+      {
+       "t": "判断价值问题时若选项只出现主体或客体中的一方、宣称价值只由其中一方决定，则大概率错误。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十五",
+     "title": "认识世界和改造世界",
+     "points": [
+      {
+       "t": "认识世界的根本目的在于改造世界，认识世界和改造世界统一的基础是实践。",
+       "s": 4
+      },
+      {
+       "t": "改造客观世界和改造主观世界相互促进：只有在改造客观世界的实践中才能深入改造主观世界，只有认真改造主观世界才能更好地改造客观世界。",
+       "s": 4
+      },
+      {
+       "t": "自由是对必然的认识和对客观世界的改造，自由是有条件的（认识条件和实践条件）；认识必然只是取得获得自由的前提，只有利用必然改造世界并达到预想目的，自由才能真正实现。",
+       "s": 4
+      },
+      {
+       "t": "必然是规律性，是不依赖于人的意识而存在的自然和社会发展所固有的客观规律，人不能摆脱必然性的制约。",
+       "s": 3
+      },
+      {
+       "t": "认识必然、争取自由是人类认识世界和改造世界的根本目标，自由是相对的而不是绝对的。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十六",
+     "title": "社会存在与社会意识",
+     "points": [
+      {
+       "t": "社会存在主要包括自然地理环境、人口因素和物质生产方式，其中物质生产方式是社会存在和发展的基础及决定力量。",
+       "s": 4
+      },
+      {
+       "t": "自然地理环境是人类社会生存和发展永恒的、必要的条件，人口因素对社会发展具有影响和制约作用，但二者都不能脱离社会生产发生作用，都不能决定社会的性质和社会形态的更替。",
+       "s": 4
+      },
+      {
+       "t": "社会意识分为社会意识形态（政治法律思想是核心、起主导作用）和非意识形态的社会意识形式（语言学、形式逻辑、自然科学等）。",
+       "s": 3
+      },
+      {
+       "t": "社会存在决定社会意识：社会存在是社会意识内容的客观来源，社会意识是社会物质生活过程及其条件的主观反映，社会意识是具体的、历史的。",
+       "s": 5
+      },
+      {
+       "t": "社会意识具有相对独立性：与社会存在发展具有不完全同步性和不平衡性，各种形式之间相互影响且各自具有历史继承性，对社会存在具有能动的反作用（这是相对独立性的突出表现）。",
+       "s": 5
+      },
+      {
+       "t": "社会意识有时落后于社会存在并阻碍其前进，有时又预见社会存在的未来趋势而推动其发展。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十七",
+     "title": "社会基本矛盾和社会历史发展的动力",
+     "points": [
+      {
+       "t": "生产力三要素是劳动资料、劳动对象和劳动者，生产工具是区分社会经济时代的客观依据，劳动者是生产力中最活跃的因素。",
+       "s": 4
+      },
+      {
+       "t": "生产关系是人们在物质生产过程中形成的不以人的意志为转移的经济关系（实质是人们的物质利益关系），生产资料所有制关系是最基本、具有决定意义的方面，是区分不同生产方式、判定社会经济结构性质的客观依据。",
+       "s": 4
+      },
+      {
+       "t": "生产力决定生产关系，生产关系对生产力具有能动的反作用（适合时起推动作用，不适合时起阻碍作用）。",
+       "s": 4
+      },
+      {
+       "t": "经济基础是由社会一定发展阶段的生产力所决定的生产关系的总和，上层建筑是建立在一定经济基础之上的意识形态以及与之相适应的制度、组织和设施，经济基础决定上层建筑，上层建筑反作用于经济基础。",
+       "s": 4
+      },
+      {
+       "t": "生产力与生产关系、经济基础与上层建筑的矛盾是人类社会基本矛盾，是社会发展的根本动力；生产力是社会基本矛盾运动中最基本的动力因素，是人类社会发展和进步的最终决定力量。",
+       "s": 5
+      },
+      {
+       "t": "社会发展的其他动力包括阶级斗争、革命、改革、科学技术和文化，但基础性和根本性的动力是社会基本矛盾。",
+       "s": 3
+      },
+      {
+       "t": "科学技术是推动社会文明进步的重要力量，但有时也会表现为异己的、敌对的力量；文化是推动社会发展的重要力量，二者都不是决定力量。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十八",
+     "title": "社会进步与社会形态更替",
+     "points": [
+      {
+       "t": "社会进步的集中表现是社会形态的更替，社会进步不是直线上升的，而是曲折发展的，有时甚至包含着某些停滞和倒退。",
+       "s": 4
+      },
+      {
+       "t": "人的发展经历三个阶段：人的依赖关系占统治地位的阶段（资本主义以前）、以物的依赖关系为基础的人的独立性的阶段（资本主义）、自由个性的阶段（共产主义）。",
+       "s": 3
+      },
+      {
+       "t": "社会形态更替具有统一性：依据经济基础特别是生产关系的不同性质，社会历史可划分为五种社会形态并依次更替。",
+       "s": 4
+      },
+      {
+       "t": "社会形态更替具有多样性：有些国家在发展中超越了一个甚至几个社会形态而跨越式地向前发展，同一种社会形态在不同国家也会显现出不同特点。",
+       "s": 4
+      },
+      {
+       "t": "社会形态更替是必然性与选择性的统一：生产力与生产关系矛盾运动的规律性从根本上规定了更替的必然性，而人们的历史选择性归根到底是人民群众的选择性。",
+       "s": 4
+      },
+      {
+       "t": "社会发展的必然性为人们的历史选择提供了基础、范围和可能性空间，社会形态更替的过程是主观能动性与客观规律性相统一的过程。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十九",
+     "title": "人民群众在历史发展中的作用",
+     "points": [
+      {
+       "t": "现实的人及其活动是社会历史存在和发展的前提，人的本质不是单个人所固有的抽象物，而是一切社会关系的总和，人的本质属性是社会属性。",
+       "s": 4
+      },
+      {
+       "t": "人民群众从质上看指一切对社会历史发展起推动作用的人，从量上看指社会人口中的绝大多数，其中最稳定的主体部分始终是从事物质资料生产的劳动群众。",
+       "s": 4
+      },
+      {
+       "t": "人民群众是历史的创造者：是社会物质财富的创造者、社会精神财富的创造者，是社会变革的决定力量，其总体意愿和行动代表历史发展的方向。",
+       "s": 5
+      },
+      {
+       "t": "人民群众创造历史的活动受到一定社会历史条件的制约，包括经济条件（首要的、决定性的影响）、政治条件和精神文化条件。",
+       "s": 3
+      },
+      {
+       "t": "历史人物有时能够决定个别历史事件的结局，但不能决定和改变历史发展的总进程和总方向；杰出人物能使具体历史事件的外貌或某些后果发生变化，但不能改变历史发展的基本方向。",
+       "s": 4
+      },
+      {
+       "t": "任何历史人物的出现都体现了必然性与偶然性的统一，历史是无数个人相互作用的结果。",
+       "s": 3
+      },
+      {
+       "t": "可以说“人们自己创造自己的历史”，但不能说“人人创造历史”，因为“创造历史”只能对应人民群众。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题二十",
+     "title": "商品与劳动价值理论",
+     "points": [
+      {
+       "t": "商品经济产生的历史条件是存在社会分工、生产资料和劳动产品属于不同的所有者；商品经济是一个历史范畴，原始社会没有、共产主义社会也没有。",
+       "s": 3
+      },
+      {
+       "t": "商品是使用价值和价值的矛盾统一体：使用价值是商品的自然属性、一切劳动产品所共有并构成社会财富的物质内容，价值是商品特有的社会属性，体现生产者之间一定的社会关系。",
+       "s": 4
+      },
+      {
+       "t": "劳动的二重性决定商品的二因素：具体劳动创造使用价值（是使用价值的源泉但不是唯一源泉），抽象劳动形成价值（是价值的唯一源泉），二者是同一劳动过程不可分割的两个方面。",
+       "s": 4
+      },
+      {
+       "t": "具体劳动反映人与自然之间的关系、是劳动的自然属性，抽象劳动反映商品生产者之间的社会关系、是劳动的社会属性。",
+       "s": 3
+      },
+      {
+       "t": "商品价值量由生产商品的社会必要劳动时间决定，与劳动生产率成反比，并以简单劳动为尺度计量（复杂劳动等于自乘的或多倍的简单劳动）。",
+       "s": 4
+      },
+      {
+       "t": "价值规律的内容是商品价值量由社会必要劳动时间决定、商品交换以价值量为基础按等价交换原则进行，表现形式是价格围绕价值自发波动；其自发作有三：调节生产资料和劳动力在各部门的分配、刺激社会生产力发展、调节社会收入分配，消极后果是资源浪费、阻碍技术进步、导致收入两极分化。",
+       "s": 4
+      },
+      {
+       "t": "以私有制为基础的商品经济的基本矛盾是私人劳动和社会劳动的矛盾，交换是解决这一矛盾的唯一途径，它决定着商品生产者的命运，并在资本主义制度下发展为资本主义基本矛盾。",
+       "s": 4
+      },
+      {
+       "t": "货币是固定充当一般等价物的商品，五种基本职能是价值尺度、流通手段、贮藏手段、支付手段和世界货币。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题二十一",
+     "title": "剩余价值理论",
+     "points": [
+      {
+       "t": "资本主义产生的途径是从小商品经济中分化出来、从商人和高利贷者转化而来；资本原始积累的两个主要途径是用暴力手段剥夺农民的土地和用暴力手段掠夺货币财富。",
+       "s": 3
+      },
+      {
+       "t": "劳动力成为商品的两个基本条件是劳动者在法律上是自由人、且没有任何生产资料和生活资料来源；劳动力成为商品是货币转化为资本的前提。",
+       "s": 4
+      },
+      {
+       "t": "劳动力商品的价值包括维持劳动者本人生存、维持劳动者家属生存所必需的生活资料的价值以及劳动者接受教育和训练所支出的费用，并包含着历史和道德的因素。",
+       "s": 4
+      },
+      {
+       "t": "劳动力商品的使用价值是价值的源泉，在消费过程中能创造比劳动力本身价值更大的新价值；资本是能够带来剩余价值的价值，其本质不是物，而是一定历史社会形态的生产关系。",
+       "s": 5
+      },
+      {
+       "t": "剩余价值是雇佣工人创造的、被资本家无偿占有的超过劳动力价值的那部分价值，是雇佣工人剩余劳动的凝结，体现资本家与雇佣工人之间剥削与被剥削的关系。",
+       "s": 4
+      },
+      {
+       "t": "划分不变资本与可变资本的依据是资本在剩余价值生产中所起作用不同：不变资本是剩余价值生产的条件而非来源，可变资本购买的劳动力在生产中再生产出自身价值并创造剩余价值，这进一步揭示了剩余价值的源泉；剩余价值率 m′=m/v。",
+       "s": 4
+      },
+      {
+       "t": "绝对剩余价值是在必要劳动时间不变条件下延长工作日或提高劳动强度生产的剩余价值，相对剩余价值是在工作日长度不变条件下通过缩短必要劳动时间生产的剩余价值，超额剩余价值是商品个别价值低于社会价值的差额；生产自动化条件下剩余价值的源泉仍然是雇佣工人的剩余劳动。",
+       "s": 4
+      },
+      {
+       "t": "资本主义工资的本质是劳动力的价值或价格（不是劳动的价值或价格），它表现为“劳动的价格”从而掩盖了剥削关系，主要形式是计时工资和计件工资。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题二十二",
+     "title": "资本积累与资本循环",
+     "points": [
+      {
+       "t": "资本主义再生产的特征是扩大再生产，资本积累是资本主义扩大再生产的源泉，其实质是把剩余价值转化为资本。",
+       "s": 4
+      },
+      {
+       "t": "资本积累的本质是资本家不断利用无偿占有的剩余价值扩大资本规模、从而进一步扩大和加强对工人的剥削和统治，源泉是剩余价值，后果是加剧社会两极分化并产生失业现象。",
+       "s": 4
+      },
+      {
+       "t": "资本有机构成是由资本技术构成决定并反映技术构成变化的资本价值构成（c∶v），其提高是一般趋势；单纯生产资料涨价只改变价值构成，不涉及技术构成和有机构成。",
+       "s": 4
+      },
+      {
+       "t": "资本有机构成提高使可变资本相对量减少、造成大批工人失业，形成相对过剩人口，其三种形式是流动的过剩人口、潜在的过剩人口和停滞的过剩人口。",
+       "s": 3
+      },
+      {
+       "t": "产业资本循环经历购买、生产、售卖三个阶段，依次采取货币资本、生产资本、商品资本三种职能形式，分别承担为生产剩余价值准备条件、生产剩余价值和实现剩余价值的职能。",
+       "s": 4
+      },
+      {
+       "t": "产业资本运动的基本前提条件是三种职能形式在空间上并存、在时间上继起。",
+       "s": 4
+      },
+      {
+       "t": "影响资本周转速度的关键因素是资本周转的时间和生产资本的固定资本与流动资本的构成；固定资本是劳动资料，流动资本是可变资本加不变资本中的原材料、燃料等。",
+       "s": 3
+      },
+      {
+       "t": "社会再生产的核心问题是社会总产品的实现问题，即社会总产品的价值补偿和实物补偿问题。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题二十三",
+     "title": "资本主义基本矛盾与经济危机",
+     "points": [
+      {
+       "t": "资本主义的基本矛盾是生产社会化和生产资料资本主义私人占有之间的矛盾。",
+       "s": 4
+      },
+      {
+       "t": "资本主义经济危机的本质特征是生产相对过剩，而不是与劳动人民实际需要相比的绝对过剩。",
+       "s": 4
+      },
+      {
+       "t": "经济危机在形式上的可能性首先是由货币作为支付手段和流通手段引起的，但其爆发的根本原因是资本主义基本矛盾。",
+       "s": 3
+      },
+      {
+       "t": "资本主义基本矛盾具体表现为：生产无限扩大的趋势与劳动人民有支付能力的需求相对缩小的矛盾，单个企业内部生产的有组织性与整个社会生产的无政府状态的矛盾。",
+       "s": 4
+      },
+      {
+       "t": "经济危机周期性爆发是由资本主义基本矛盾运动的阶段性决定的，包括危机、萧条、复苏和高涨四个阶段，其中危机阶段是周期的基础阶段和必经阶段。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题二十四",
+     "title": "垄断资本主义",
+     "points": [
+      {
+       "t": "垄断资本主义是在生产集中和资本集中的基础上形成的，生产集中和资本集中是资本家追求剩余价值的结果；垄断组织最简单的、初级的组织形式是短期价格协定。",
+       "s": 4
+      },
+      {
+       "t": "垄断产生的原因：生产集中发展到相当高程度使极少数企业联合起来实行垄断、企业规模巨大形成对竞争的限制、企业之间为避免两败俱伤而达成妥协联合起来。",
+       "s": 3
+      },
+      {
+       "t": "垄断没有消除竞争：垄断条件下的竞争在目的上为获取高额垄断利润并巩固扩大垄断地位，在手段上更加多样（还包括非经济手段），在范围上遍及各个领域和部门并由国内扩展到国外。",
+       "s": 4
+      },
+      {
+       "t": "金融资本是由工业垄断资本和银行垄断资本融合而成的一种垄断资本，形成途径是金融联系、资本参与和人事参与；金融寡头在经济领域主要通过“参与制”实现控制，对国家机器主要通过“个人联合”实现控制。",
+       "s": 4
+      },
+      {
+       "t": "垄断利润归根到底来自无产阶级和其他劳动人民创造的剩余价值，主要通过垄断组织制定的垄断价格（垄断高价和垄断低价）实现；垄断价格没有否定价值规律，从全社会看商品价格总额仍然等于商品价值总额。",
+       "s": 4
+      },
+      {
+       "t": "国家垄断资本主义是国家政权和私人垄断资本融合在一起的垄断资本主义，主要形式有国家所有并直接经营企业、国家与私人共有合营企业、国家参与私人垄断资本的再生产过程、宏观调节和微观规制五种。",
+       "s": 4
+      },
+      {
+       "t": "国家垄断资本主义的实质是私人垄断资本利用国家机器为其发展服务，它的出现没有根本改变垄断资本主义的性质，也没有从根本上消除资本主义的基本矛盾。",
+       "s": 4
+      },
+      {
+       "t": "垄断资本向世界范围扩展的三种基本形式是借贷资本输出、生产资本输出和商品资本输出。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题二十五",
+     "title": "经济全球化",
+     "points": [
+      {
+       "t": "经济全球化表现为生产全球化、贸易全球化和金融全球化。",
+       "s": 4
+      },
+      {
+       "t": "经济全球化的根本推动力是科学技术的进步和生产力的发展，信息技术革命把整个世界空前地联系在一起。",
+       "s": 4
+      },
+      {
+       "t": "跨国公司的发展为经济全球化提供了适宜的企业组织形式，促进了各种生产要素在全球的流动和国际分工。",
+       "s": 3
+      },
+      {
+       "t": "各国经济体制的变革和国际经济组织的发展是经济全球化的体制与组织保障。",
+       "s": 3
+      },
+      {
+       "t": "当今困扰世界的很多问题并不是经济全球化造成的，国际金融危机不是经济全球化发展的必然产物，而是金融资本过度逐利、金融监管严重缺失的结果。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题二十六",
+     "title": "正确认识当代资本主义的新变化",
+     "points": [
+      {
+       "t": "二战后资本主义生产资料所有制的变化表现为国家资本所有制的形成和法人资本所有制的崛起，后者成为居主导地位的资本所有制形式。",
+       "s": 4
+      },
+      {
+       "t": "劳资关系和分配关系的变化包括职工参与决策、终身雇佣、职工持股以及社会福利制度的普及化、全民化。",
+       "s": 3
+      },
+      {
+       "t": "社会阶层和阶级结构的变化表现为拥有所有权的资本家一般不再直接经营和管理企业，高级职业经理成为大公司经营活动的实际控制者，知识型和服务型劳动者数量不断增加。",
+       "s": 3
+      },
+      {
+       "t": "二战后资本主义变化的根本推动力量是科学技术革命和生产力的发展，其他原因还包括工人阶级争取自身权利和利益的斗争、社会主义制度初步显示的优越性、主张改良主义的政党对资本主义制度的改革。",
+       "s": 4
+      },
+      {
+       "t": "二战后资本主义变化的实质是人类社会发展一般规律和资本主义经济规律作用的结果，是资本主义生产方式为适应生产力发展要求而作出自我调节的结果，是在资本主义制度基本框架内的变化，并不意味着资本主义生产关系根本性质发生了变化。",
+       "s": 5
+      },
+      {
+       "t": "当代资本主义的新特征中，国际金融资本的垄断成为当代资本主义最突出、最鲜明、最主要的特征。",
+       "s": 4
+      },
+      {
+       "t": "世界大变局下资本主义的矛盾与冲突表现为经济发展失调、政治体制失灵、社会融合机制失效，其深层次根源归根结底在于资本主义的基本矛盾。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题二十七",
+     "title": "资本主义的历史地位和发展趋势",
+     "points": [
+      {
+       "t": "资本主义的民主是金钱操纵下的民主、实际是资产阶级精英统治下的民主，法律名义上的平等掩盖着事实上的不平等。",
+       "s": 4
+      },
+      {
+       "t": "资本主义国家的政党制是维护资产阶级统治的政治制度，政党恶斗相互掣肘、决策效率低下，激化社会矛盾。",
+       "s": 3
+      },
+      {
+       "t": "资本主义的局限性在于基本矛盾阻碍社会生产力发展、财富占有两极分化引发经济危机、资产阶级支配和控制经济政治运行不断激化社会矛盾和冲突，这些局限性决定了资本主义生产方式的历史过渡性。",
+       "s": 4
+      },
+      {
+       "t": "资本主义为社会主义所代替具有历史必然性：资本主义基本矛盾“包含着现代的一切冲突的萌芽”，资本积累推动资本主义基本矛盾不断激化并最终否定资本主义自身。",
+       "s": 5
+      },
+      {
+       "t": "国家垄断资本主义是资本社会化的更高形式、将成为社会主义的前奏；资本主义社会存在着资产阶级和无产阶级两大阶级之间的矛盾和斗争。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题二十八",
+     "title": "社会主义的发展及其规律",
+     "points": [
+      {
+       "t": "19 世纪初期以圣西门、傅立叶、欧文为代表的批判的空想社会主义是科学社会主义的直接思想来源。",
+       "s": 4
+      },
+      {
+       "t": "空想社会主义的局限性在于没有能够指出真正的出路：既不会阐明资本主义制度下雇佣奴隶制的本质，又不会发现资本主义发展的规律，也不会找到能够成为新社会创造者的社会力量。",
+       "s": 4
+      },
+      {
+       "t": "社会主义从空想到科学飞跃的理论基础是唯物史观和剩余价值学说，“资本主义必然灭亡、社会主义必然胜利”是科学社会主义的核心命题。",
+       "s": 5
+      },
+      {
+       "t": "1871 年巴黎公社革命是无产阶级夺取政权的第一次伟大尝试，它实行全面的选举制和撤换制、取消高薪制，以防止国家机关工作人员由社会公仆变为社会主人。",
+       "s": 3
+      },
+      {
+       "t": "列宁根据经济和政治发展的不平衡是资本主义的绝对规律，得出“社会主义可能首先在少数甚至在单独一个资本主义国家内获得胜利”的结论；十月革命实现了社会主义从理想到现实的伟大飞跃。",
+       "s": 4
+      },
+      {
+       "t": "苏维埃俄国经历进一步巩固政权、战时共产主义（余粮收集制、取消商品货币关系）和新经济政策（粮食税取代余粮收集制、恢复商品货币关系、允许私人自由贸易和小工业企业发展、采取国家资本主义形式）三个时期。",
+       "s": 3
+      },
+      {
+       "t": "社会主义建设过程的长期性受生产力发展状况、经济基础和上层建筑发展状况、国际环境的严峻挑战以及执政党对建设规律的认识需要长期过程等因素制约。",
+       "s": 3
+      },
+      {
+       "t": "社会主义发展道路具有多样性，其原因在于各国生产力发展状况和社会发展阶段不同、历史文化传统存在差异、时代和实践不断发展；探索适合本国国情的道路必须坚持对待马克思主义的科学态度、坚持“走自己的路”、充分吸收人类一切优秀文明成果。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题二十九",
+     "title": "共产主义崇高理想及其最终实现",
+     "points": [
+      {
+       "t": "在展望未来社会的问题上，是否坚持科学的立场观点方法是能否正确预见未来的基本前提，也是马克思主义与空想社会主义的根本区别。",
+       "s": 4
+      },
+      {
+       "t": "马克思主义经典作家预见未来社会的方法论原则：在揭示人类社会发展一般规律的基础上指明社会发展的方向，在剖析资本主义旧世界的过程中阐发未来新世界的特点，在社会主义社会发展中不断深化认识，立足于揭示未来社会的一般特征而不对各种细节作具体描绘。",
+       "s": 4
+      },
+      {
+       "t": "共产主义社会的基本特征是物质财富极大丰富、消费资料按需分配，社会关系高度和谐、人们精神境界极大提高，实现每个人自由而全面的发展、人类从必然王国向自由王国飞跃。",
+       "s": 5
+      },
+      {
+       "t": "实现人的自由而全面的发展是马克思主义追求的根本价值目标。",
+       "s": 4
+      },
+      {
+       "t": "实现共产主义是历史发展的必然，这是以人类社会发展规律以及资本主义社会的基本矛盾发展为依据的，实现共产主义是人类最伟大的事业。",
+       "s": 5
+      },
+      {
+       "t": "实现共产主义是长期的历史过程：资本主义的灭亡和向社会主义的转变是一个长期的过程，社会主义社会的充分发展和最终向共产主义过渡需要很长的历史时期。",
+       "s": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "maozhongte",
+   "name": "毛泽东思想和中国特色社会主义理论体系概论",
+   "short": "毛中特",
+   "color": "#7c3aed",
+   "sections": [
+    {
+     "no": "专题一",
+     "title": "马克思主义中国化时代化的历史进程和理论成果",
+     "points": [
+      {
+       "t": "1938 年党的六届六中全会上，毛泽东作《论新阶段》报告，最先提出“马克思主义的中国化”命题，这是党首次明确提出这一重大命题。",
+       "s": 5
+      },
+      {
+       "t": "推进马克思主义中国化时代化的原因：一是马克思主义理论本身发展的内在要求，二是解决中国实际问题的客观需要。",
+       "s": 3
+      },
+      {
+       "t": "推进马克思主义中国化时代化的根本途径是“两个结合”；坚守马克思主义这个魂脉和中华优秀传统文化这个根脉，是理论创新的基础和前提。",
+       "s": 4
+      },
+      {
+       "t": "理论成果为毛泽东思想、邓小平理论、“三个代表”重要思想、科学发展观、习近平新时代中国特色社会主义思想，构成一脉相承又与时俱进的科学体系。",
+       "s": 4
+      },
+      {
+       "t": "毛泽东思想所蕴含的立场、观点和方法，为中国特色社会主义理论体系提供基本遵循；中国特色社会主义理论体系在新的历史条件下又进一步丰富和发展了毛泽东思想。",
+       "s": 4
+      },
+      {
+       "t": "二者都是马列主义在中国的运用和发展、都以独创性成果丰富马列理论宝库、都是党和国家必须长期坚持的指导思想和各族人民团结奋斗的共同思想基础；但形成的时代背景、实践基础不同（前者不涉及改革，后者不涉及革命）。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题二",
+     "title": "毛泽东思想及其历史地位",
+     "points": [
+      {
+       "t": "形成发展四阶段：提出新民主主义革命基本思想，标志开始形成；提出农村包围城市、武装夺取政权思想，标志初步形成；系统阐述新民主主义革命理论，标志多方面展开而趋于成熟；新中国成立前后形成人民民主专政、社会主义改造、两类矛盾学说、中国工业化道路等理论。",
+       "s": 4
+      },
+      {
+       "t": "1945 年党的七大将毛泽东思想写入党章、确立为党必须长期坚持的指导思想，这是七大的历史性贡献。",
+       "s": 5
+      },
+      {
+       "t": "毛泽东思想的主题是中国革命和建设，活的灵魂是实事求是、群众路线、独立自主。",
+       "s": 4
+      },
+      {
+       "t": "实事求是是毛泽东思想的精髓和基本点，是马克思主义的根本观点、党的思想路线，由毛泽东在民主革命时期确立。",
+       "s": 5
+      },
+      {
+       "t": "群众路线是党的生命线和根本工作路线；独立自主是立党立国的重要原则，“走自己的路”是党全部理论和实践的立足点。",
+       "s": 3
+      },
+      {
+       "t": "1981 年十一届六中全会《关于建国以来党的若干历史问题的决议》首次概括活的灵魂和科学体系，是继七大之后第二次对毛泽东思想作出概括；独立自主思想最初的明确表述见于 1930 年《反对本本主义》。",
+       "s": 4
+      },
+      {
+       "t": "定义与历史地位：毛泽东思想是马列主义在中国的运用和发展、被实践证明了的关于中国革命和建设的正确理论原则和经验总结、党集体智慧的结晶；它是马克思主义中国化时代化第一次历史性飞跃的理论成果、中国革命和建设的科学指南、党和人民宝贵的精神财富。",
+       "s": 4
+      },
+      {
+       "t": "萌芽（1921—1927 年，党的创建和国民革命时期）：提出新民主主义革命的基本思想，标志著作是《中国社会各阶级的分析》《湖南农民运动考察报告》。",
+       "s": 5
+      },
+      {
+       "t": "初步形成（1927—1935 年，土地革命战争前期）：提出农村包围城市、武装夺取政权道路理论，标志著作是《中国的红色政权为什么能够存在？》《井冈山的斗争》《星星之火，可以燎原》《反对本本主义》。",
+       "s": 5
+      },
+      {
+       "t": "成熟（1935—1945 年，遵义会议到抗日战争胜利）：系统阐述新民主主义革命理论，标志著作是《〈共产党人〉发刊词》《中国革命和中国共产党》《新民主主义论》《论联合政府》；1945 年中共七大把毛泽东思想写入党章。",
+       "s": 5
+      },
+      {
+       "t": "继续发展（1945—1978 年，解放战争和新中国成立后）：人民民主专政理论、社会主义改造理论、两类矛盾学说、中国工业化道路理论，代表著作《论人民民主专政》《论十大关系》《关于正确处理人民内部矛盾的问题》。",
+       "s": 5
+      },
+      {
+       "t": "【补充·《论持久战》】游击战争在抗日战争中具有战略地位的原因之一：游击战争是大规模的。",
+       "s": 5
+      },
+      {
+       "t": "【补充·《论持久战》】游击战争在抗日战争中具有战略地位的原因之二：主要不是在内线配合正规军作战，而是在外线单独作战。",
+       "s": 5
+      },
+      {
+       "t": "【补充·《论持久战》】游击战争在抗日战争中具有战略地位的原因之三：不是次要的，而是抗日战争的主要作战方式。",
+       "s": 5
+      },
+      {
+       "t": "【补充·易错】游击战争在战略上是防御的、在战役战斗上是进攻的，不能说「是进攻战而不是防御战」。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题三",
+     "title": "新民主主义革命理论",
+     "points": [
+      {
+       "t": "以五四运动为标志，中国无产阶级作为独立政治力量登上历史舞台并成为革命领导力量，中国革命进入新民主主义革命阶段；与旧民主主义革命相比，它属于世界无产阶级社会主义革命的一部分、由无产阶级及其政党领导（根本区别）、以马列主义为指导、前途是社会主义。",
+       "s": 4
+      },
+      {
+       "t": "总路线 1939 年由《中国革命和中国共产党》第一次提出，1948 年《在晋绥干部会议上的讲话》完整表述（“完整”体现在革命对象增加了官僚资本主义）；“人民大众”即动力，包括工人阶级（最基本动力）、农民阶级（主力军）、城市小资产阶级（可靠同盟者）和民族资产阶级。",
+       "s": 4
+      },
+      {
+       "t": "革命对象是“三座大山”：帝国主义是首要对象；封建主义中封建地主阶级是帝国主义统治中国的社会基础，是中国经济现代化和政治民主化主要的、直接的障碍；反对官僚资本主义并非因为它是资本主义，而是因为它是买办的封建的国家垄断资本主义。",
+       "s": 5
+      },
+      {
+       "t": "无产阶级领导权是中国革命的中心问题、新民主主义革命理论的核心问题，区分新旧民主革命的根本标志是领导权掌握在无产阶级还是资产阶级手中；实现领导权的关键是建立以工农联盟为基础的广泛统一战线，坚持独立自主、又联合又斗争是基本策略，坚强支柱是革命武装，根本保证是加强党的建设。",
+       "s": 5
+      },
+      {
+       "t": "性质是资产阶级民主主义革命（由半殖民地半封建的社会性质和反帝反封建的历史任务决定），前途是社会主义，革命必须分“两步走”；“左”倾“一次革命论”只看到联系、混淆区别、否定阶段性，右的“二次革命论”只看到区别、否认联系、放弃领导权。",
+       "s": 5
+      },
+      {
+       "t": "基本纲领：政治纲领是各革命阶级联合专政的国体和民主集中制的人民代表大会制度的政体；经济纲领三大项中，没收官僚资本归国家所有具有双重性质，保护民族工商业是极具特色的一项；文化纲领是民族的科学的大众的文化。",
+       "s": 4
+      },
+      {
+       "t": "道路是农村包围城市、武装夺取政权：井冈山时期“工农武装割据”思想标志初步形成，六届六中全会明确“走相反的道路”；“能够走”的首要原因是政治经济发展极端不平衡，坚强后盾是正式红军，重要主观条件是党的领导有力量且政策不错误；三者关系中土地革命是基本内容、武装斗争是主要形式、根据地是战略阵地。",
+       "s": 5
+      },
+      {
+       "t": "三大法宝：统一战线中工农联盟是基础性联盟、与民族资产阶级的联盟是辅助性联盟；武装斗争要坚持党对军队的绝对领导（根本原则、毛泽东建军思想的核心）和全心全意为人民服务（唯一宗旨）；党的建设把思想建设放在首位，三大优良作风是党区别于其他任何政党的显著标志。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "专题四",
+     "title": "社会主义改造理论",
+     "points": [
+      {
+       "t": "1949—1956 年是由新民主主义到社会主义过渡的时期，社会性质是新民主主义社会：它不是独立的社会形态，而是过渡性社会，但属于社会主义体系。",
+       "s": 4
+      },
+      {
+       "t": "五种经济成分中，社会主义经济、个体经济、资本主义经济是三种主要成分（国营经济居领导地位、个体经济占绝对优势，个体经济是处于“十字路口”的经济）；合作社经济、国家资本主义经济是两种过渡性质的经济成分。",
+       "s": 4
+      },
+      {
+       "t": "三种基本阶级是工人阶级、农民阶级和其他小资产阶级、民族资产阶级；1952 年底土改基本完成后，工人阶级和资产阶级的矛盾逐步成为国内主要矛盾。",
+       "s": 3
+      },
+      {
+       "t": "总路线是“一化三改”，特点是社会主义建设和社会主义改造同时并举，体现解放生产力与发展生产力、变革生产关系与发展生产力的有机统一。",
+       "s": 5
+      },
+      {
+       "t": "农业改造走互助合作道路，遵循自愿互利、典型示范、国家帮助原则，实行依靠贫下中农的阶级政策，采取积极领导、稳步前进的方针，步骤为互助组→初级社→高级社；手工业改造同样采取合作化，步骤为供销小组→供销合作社→生产合作社。",
+       "s": 4
+      },
+      {
+       "t": "资本主义工商业改造用和平赎买方法：赎买不是国家支付巨额补偿，而是让资本家在一定年限内从企业经营所得中获取一部分利润；可能性在于民族资产阶级仍有两面性、党与民族资产阶级长期保持统一战线、人民民主专政政权和强大国营经济、统购统销与工人监督。",
+       "s": 5
+      },
+      {
+       "t": "步骤采取从低级到高级的国家资本主义形式：初级形式（委托加工、计划订货、统购包销、经销代销，“四马分肥”）是同资本家在企业外部的合作，企业已有社会主义因素；高级形式公私合营是社会主义成分与资本主义成分在企业内部合作、属半社会主义性质；全行业公私合营后实行定股定息，基本成为社会主义国营；并把对企业的改造与对人的改造相结合，使资本家成为自食其力的劳动者。",
+       "s": 4
+      },
+      {
+       "t": "历史经验三条：工业化建设与改造同时并举、积极引导逐步过渡、用和平方法进行改造；1956 年底三大改造基本完成、公有制成为经济基础，标志社会主义基本制度确立（建立社会主义经济制度是进入社会主义社会最主要的标志），我国进入社会主义初级阶段。",
+       "s": 5
+      },
+      {
+       "t": "确立社会主义基本制度是中国历史上最深刻最伟大的社会变革，为当代中国一切发展进步奠定了制度基础，也为中国特色社会主义制度的创新和发展提供了重要前提。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题五",
+     "title": "社会主义建设道路初步探索的理论成果",
+     "points": [
+      {
+       "t": "1956 年 4 月毛泽东提出实行马克思主义同中国实际的“第二次结合”，为探索适合中国情况的社会主义建设道路提供了基本指导原则（他提出了任务但没有完成）。",
+       "s": 4
+      },
+      {
+       "t": "《论十大关系》初步总结建设经验、明确以苏为鉴和独立自主探索，标志党探索中国社会主义建设道路的良好开端；确定调动一切积极因素为社会主义事业服务的基本方针；前三条讲重工业与轻工业农业、沿海与内地工业、经济与国防建设的关系（即开辟与苏联不同的工业化道路），第四、五条讲国家生产单位个人和中央地方关系，开始涉及经济体制改革。",
+       "s": 5
+      },
+      {
+       "t": "社会主义社会的基本矛盾仍是生产关系和生产力、上层建筑和经济基础的矛盾；特点是“又相适应又相矛盾”，相适应的一面是基本方面，因此可以经过社会主义制度本身不断得到解决。",
+       "s": 5
+      },
+      {
+       "t": "社会主义社会的矛盾反映在政治上分为敌我矛盾和人民内部矛盾，前者是对抗性的、用专政方法（分清敌我），后者是非对抗性的、用民主方法（分清是非），两者在一定条件下可以互相转化；社会主义国家政治生活的主题是正确处理人民内部矛盾，根本着眼点是调动一切积极因素。",
+       "s": 5
+      },
+      {
+       "t": "解决人民内部矛盾的具体方针：政治思想领域“团结—批评—团结”，物质利益分配统筹兼顾、适当安排，群众与政府机关坚持民主集中制，科学文化领域“百花齐放、百家争鸣”，党与民主党派“长期共存、互相监督”，民族之间民族平等、团结互助。",
+       "s": 3
+      },
+      {
+       "t": "中共八大指出社会主义制度已基本建立，国内主要矛盾已是人民对于经济文化迅速发展的需要同当前经济文化不能满足人民需要的状况之间的矛盾（不再是工人阶级和资产阶级的矛盾），主要任务是集中力量发展社会生产力；并提出既反保守又反冒进、在综合平衡中稳步前进的方针，肯定陈云“三个主体、三个补充”，要求做到“有法可依”“有法必依”。",
+       "s": 5
+      },
+      {
+       "t": "中国工业化道路以工业为主导、重工业为建设重点，同时充分注意发展农业和轻工业，确立以农业为基础、以工业为主导、以农轻重为序的总方针和“两条腿走路”的思路。",
+       "s": 4
+      },
+      {
+       "t": "其他成果：社会主义可分为不发达的社会主义和比较发达的社会主义两阶段；“四个现代化”战略目标与两步走步骤；“向科学进军”、德智体全面发展的教育方针、知识分子是工人阶级一部分、发展商品生产利用价值规律和“两参一改三结合”；初步探索巩固发展了社会主义制度，为开创中国特色社会主义提供了宝贵经验、理论准备、物质基础。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题六",
+     "title": "中国特色社会主义理论体系的形成发展",
+     "points": [
+      {
+       "t": "邓小平理论是中国特色社会主义理论体系的开篇之作，因此邓小平理论的形成过程也就是中国特色社会主义理论体系的形成过程。",
+       "s": 4
+      },
+      {
+       "t": "1982 年邓小平在党的十二大开幕词中提出“走自己的道路，建设有中国特色的社会主义”，从此“中国特色社会主义”成为党的全部理论和实践创新的主题，具有里程碑意义。",
+       "s": 5
+      },
+      {
+       "t": "从十二大到十三大，邓小平围绕“什么是社会主义、怎样建设社会主义”进行深层次思考，形成一系列新方针政策和理论观点；1987 年十三大上邓小平理论的轮廓形成。",
+       "s": 3
+      },
+      {
+       "t": "1992 年南方谈话是邓小平理论的集大成之作，推动改革开放和社会主义现代化建设进入新阶段，邓小平理论逐步走向成熟。",
+       "s": 4
+      },
+      {
+       "t": "1997 年党的十五大正式提出“邓小平理论”这一概念，把它同马列主义、毛泽东思想一起确立为党的指导思想并写入党章，1999 年载入宪法。",
+       "s": 5
+      },
+      {
+       "t": "理论体系的接续发展：“三个代表”重要思想是跨世纪发展，科学发展观是新世纪新阶段的新发展，习近平新时代中国特色社会主义思想是新时代的新篇章。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题七",
+     "title": "邓小平理论",
+     "points": [
+      {
+       "t": "首要的基本理论问题是“什么是社会主义、怎样建设社会主义”（1992 年南方谈话内容之一），搞清楚它的关键是在坚持社会主义基本制度的基础上进一步认清社会主义的本质；邓小平理论的精髓是解放思想、实事求是。",
+       "s": 4
+      },
+      {
+       "t": "社会主义的本质是解放生产力、发展生产力，消灭剥削，消除两极分化，最终达到共同富裕；这一概括纠正了过去关于发展生产力的错误观念，体现了价值目标与发展手段和目的的统一，为坚持和完善公有制指出明确方向。",
+       "s": 5
+      },
+      {
+       "t": "社会主义初级阶段理论：十三大前夕邓小平第一次把初级阶段作为事关全局的基本国情加以把握，明确它是制定路线方针政策的出发点和根本依据；初级阶段至少需要上百年，包含“已是社会主义”和“仍处在初级阶段”两层含义，是建设中国特色社会主义的总依据。",
+       "s": 5
+      },
+      {
+       "t": "基本路线是“一个中心、两个基本点”：以经济建设为中心是最根本的拨乱反正、回答社会主义的根本任务，四项基本原则是立国之本和政治基石、回答解放和发展生产力的政治保证，改革开放是强国之路和活力源泉、回答发展动力和外部条件。",
+       "s": 5
+      },
+      {
+       "t": "改革的重要提法：社会主义的根本任务是发展生产力；改革开放是决定中国命运的关键一招；改革是中国的第二次革命、是社会主义社会发展的直接动力。",
+       "s": 4
+      },
+      {
+       "t": "“三个有利于”标准（1992 年南方谈话内容之一）：是否有利于发展社会主义社会的生产力、增强社会主义国家的综合国力、提高人民的生活水平，其中发展生产力是首要的也是最根本的一条。",
+       "s": 5
+      },
+      {
+       "t": "社会主义市场经济理论内涵（1992 年南方谈话内容之一）：计划经济和市场经济不是划分社会制度的标志，计划和市场都是经济手段，市场经济作为资源配置手段本身不具有制度属性；坚持社会主义制度与市场经济结合是社会主义市场经济的特色和优势所在。",
+       "s": 5
+      },
+      {
+       "t": "历史地位三条：马克思列宁主义、毛泽东思想的继承和发展，中国特色社会主义理论体系的开篇之作，改革开放和社会主义现代化建设的科学指南。",
+       "s": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "xixiang",
+   "name": "习近平新时代中国特色社会主义思想概论",
+   "short": "习思想",
+   "color": "#c026d3",
+   "sections": [
+    {
+     "no": "专题一",
+     "title": "习近平新时代中国特色社会主义思想综述",
+     "points": [
+      {
+       "t": "创立背景有五个方面：世界百年未有之大变局加速演进、中华民族伟大复兴进入关键时期、中国式现代化全面推进拓展、科学社会主义在21世纪的中国焕发新的蓬勃生机、党自我革命开辟新的境界。",
+       "s": 4
+      },
+      {
+       "t": "“两个结合”是党在探索中国特色社会主义道路中得出的规律性认识，是我们取得成功的最大法宝；前提是彼此契合，结果是互相成就。",
+       "s": 5
+      },
+      {
+       "t": "“第二个结合”是又一次思想解放；“结合”筑牢了道路根基、打开了创新空间、巩固了文化主体性。",
+       "s": 4
+      },
+      {
+       "t": "科学体系＝主要内容＋世界观和方法论；主要内容即“十个明确”“十四个坚持”“十三个方面成就”。",
+       "s": 4
+      },
+      {
+       "t": "“十个明确”是主体内容，构成四梁八柱、发挥统摄作用；“十四个坚持”是新时代坚持和发展中国特色社会主义的基本方略；“十三个方面成就”全景式展示理论与实践成果。",
+       "s": 4
+      },
+      {
+       "t": "“六个必须坚持”：人民至上（根本价值立场）、自信自立（内在精神特质）、守正创新（鲜明理论品格）、问题导向（重要实践要求）、系统观念（基本思想和工作方法）、胸怀天下（境界格局）。",
+       "s": 4
+      },
+      {
+       "t": "历史地位：当代中国马克思主义、二十一世纪马克思主义，是中华文化和中国精神的时代精华，实现了马克思主义中国化时代化新的飞跃。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题二",
+     "title": "中国特色社会主义",
+     "points": [
+      {
+       "t": "中国特色社会主义是党和人民历尽千辛万苦、付出巨大代价取得的根本成就，是实现中华民族伟大复兴的必由之路（“五个必由之路”之一）。",
+       "s": 4
+      },
+      {
+       "t": "中国特色社会主义是社会主义而不是其他什么主义：既坚持科学社会主义基本原则，又赋予鲜明中国特色；不是简单延续历史文化的母版、不是套用经典作家设想的模板、不是他国社会主义实践的再版、也不是国外现代化发展的翻版。",
+       "s": 4
+      },
+      {
+       "t": "改革开放以来取得一切成绩和进步的根本原因：开辟了中国特色社会主义道路、形成了中国特色社会主义理论体系、确立了中国特色社会主义制度、发展了中国特色社会主义文化。",
+       "s": 4
+      },
+      {
+       "t": "四者定位：道路是实现途径，理论体系是行动指南，制度是根本保障，文化是精神力量。",
+       "s": 3
+      },
+      {
+       "t": "“四个自信”来源于实践、来源于人民、来源于真理，理论支撑是社会主义必然代替资本主义的客观规律；坚定“四个自信”说到底是要坚定文化自信。",
+       "s": 4
+      },
+      {
+       "t": "新时代是我国发展新的历史方位，是新的发展阶段（不是新的历史阶段）；依据是主要矛盾、党的主要任务、中国和世界关系都发生新变化。",
+       "s": 4
+      },
+      {
+       "t": "新时代社会主要矛盾转化为人民日益增长的美好生活需要和不平衡不充分的发展之间的矛盾，但社会主义初级阶段的基本国情没有变、世界最大发展中国家的国际地位没有变。",
+       "s": 4
+      },
+      {
+       "t": "“四个全面”战略布局中，全面建设社会主义现代化国家是居于引领地位的战略目标，全面深化改革、全面依法治国、全面从严治党是三大战略举措。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题三",
+     "title": "中国式现代化",
+     "points": [
+      {
+       "t": "新时代新征程党的中心任务：团结带领全国各族人民全面建成社会主义现代化强国、实现第二个百年奋斗目标，以中国式现代化全面推进中华民族伟大复兴。",
+       "s": 4
+      },
+      {
+       "t": "中国梦的本质是国家富强、民族振兴、人民幸福；全面建成小康社会是实现中国梦的关键一步；分两步走到本世纪中叶建成社会主义现代化强国。",
+       "s": 3
+      },
+      {
+       "t": "五个中国特色：人口规模巨大是显著特征，全体人民共同富裕是本质特征、也是区别于西方现代化的显著标志，物质文明和精神文明相协调，人与自然和谐共生是鲜明特点，走和平发展道路是突出特征。",
+       "s": 5
+      },
+      {
+       "t": "本质要求是坚持中国共产党领导等9条，是推进中国式现代化的重要遵循。",
+       "s": 4
+      },
+      {
+       "t": "中国式现代化是中国共产党领导的社会主义现代化，这是管总、管根本的定性；党的领导决定其根本性质、确保锚定目标行稳致远、激发强劲动力、凝聚磅礴力量。",
+       "s": 5
+      },
+      {
+       "t": "中国式现代化是一种全新的人类文明形态，打破了“现代化＝西方化”的迷思，是对西方式现代化理论和实践的重大超越，为发展中国家探索现代化提供了全新选择。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题四",
+     "title": "坚持党的全面领导",
+     "points": [
+      {
+       "t": "党的领导是中国特色社会主义最本质的特征，其他特点和特征都由这一最本质特征决定。",
+       "s": 5
+      },
+      {
+       "t": "中国共产党领导是中国特色社会主义制度的最大优势，是带有统领性的根本优势；坚持党的全面领导是“五个必由之路”之一。",
+       "s": 4
+      },
+      {
+       "t": "中国共产党是最高政治领导力量：由人民的支持和拥护（在历史发展中形成）、我国国家性质和政治制度体系、中华民族伟大复兴事业决定。",
+       "s": 4
+      },
+      {
+       "t": "党的领导是全面的、系统的、整体的，体现在领导对象、领导内容、领导过程、领导方式上；但不是包揽包办一切，而是总揽全局、协调各方。",
+       "s": 4
+      },
+      {
+       "t": "坚持党中央集中统一领导是党的领导的最高原则；维护党中央权威和集中统一领导是成熟的马克思主义执政党的重大建党原则，最关键的是坚决维护习近平总书记党中央的核心、全党的核心地位。",
+       "s": 5
+      },
+      {
+       "t": "党的领导制度是我国的根本领导制度，在中国特色社会主义制度体系中具有统领地位，是制度体系的核心。",
+       "s": 4
+      },
+      {
+       "t": "党的四种能力：政治领导力是马克思主义政党第一位的能力，思想引领力是思想统一、步调一致的坚实基础，群众组织力是力量根基，社会号召力是先进性和感召力的重要体现。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题五",
+     "title": "坚持以人民为中心",
+     "points": [
+      {
+       "t": "江山就是人民、人民就是江山：人民是历史的创造者（理论上）、民心是最大的政治（历史上）、人民地位由政权性质决定（现实上）、由党的性质宗旨决定。",
+       "s": 4
+      },
+      {
+       "t": "人民立场是党的根本政治立场，是党区别于其他政党的显著标志；最大政治优势是密切联系群众，党执政后的最大危险是脱离群众。",
+       "s": 4
+      },
+      {
+       "t": "坚持人民至上：人民对美好生活的向往就是党的奋斗目标，人民是党的工作的最高裁决者和最终评判者，让群众满意是价值取向和根本标准。",
+       "s": 4
+      },
+      {
+       "t": "为民造福是最大政绩；树立和践行正确政绩观，起决定性作用的是党性。",
+       "s": 3
+      },
+      {
+       "t": "群众路线是党的生命线和根本工作路线，“知”是基础前提、“行”是重点关键；调查研究是获得真知灼见的源头活水，是贯彻群众路线的有效途径。",
+       "s": 4
+      },
+      {
+       "t": "共同富裕是中国特色社会主义的本质要求、中国式现代化的重要特征，也是中国式现代化区别于西方现代化的显著标志，不仅是经济问题，更是关系党的执政基础的重大政治问题。",
+       "s": 5
+      },
+      {
+       "t": "共同富裕是全体人民共同富裕，是物质生活和精神生活都富裕，不是少数人富裕、不是整齐划一的平均主义、不是所有人同时富裕；2035年取得更为明显的实质性进展，21世纪中叶基本实现。",
+       "s": 4
+      },
+      {
+       "t": "扎实推进共同富裕的原则：鼓励勤劳创新致富、坚持基本经济制度、尽力而为量力而行、坚持循序渐进。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题六",
+     "title": "全面深化改革开放",
+     "points": [
+      {
+       "t": "改革开放是决定当代中国命运的关键一招，也是决定实现“两个一百年”奋斗目标、实现中华民族伟大复兴的关键一招，是党和人民大踏步赶上时代的重要法宝。",
+       "s": 5
+      },
+      {
+       "t": "改革开放是党的一次伟大觉醒，是中国人民和中华民族发展史上一次伟大革命，是坚持和发展中国特色社会主义的必由之路。",
+       "s": 4
+      },
+      {
+       "t": "三个三中全会：十一届三中全会开启改革开放和社会主义现代化建设新时期；十八届三中全会实现改革由局部探索、破冰突围到系统集成、全面深化的转变，开创新局面；二十届三中全会既是十八届三中全会以来全面深化改革的实践续篇，也是新征程推进中国式现代化的时代新篇。",
+       "s": 4
+      },
+      {
+       "t": "正确方向：改什么、怎么改，必须以是否有利于坚持和改善党的全面领导、坚持和完善中国特色社会主义制度为根本标准；“三个进一步解放”中解放思想是思想前提，解放和发展社会生产力是鲜明特征和首要任务。",
+       "s": 4
+      },
+      {
+       "t": "总目标：完善和发展中国特色社会主义制度（规定根本方向）、推进国家治理体系和治理能力现代化（明确鲜明指向）；治理体系是管理国家的制度体系，治理能力是运用制度管理事务的能力，二者相辅相成。",
+       "s": 4
+      },
+      {
+       "t": "方法论：增强改革的系统性、整体性、协同性；顶层设计与摸着石头过河相结合；统筹改革发展稳定（改革是动力、发展是关键、稳定是前提）；胆子要大、步子要稳；重大改革于法有据。",
+       "s": 3
+      },
+      {
+       "t": "进一步全面深化改革以推进中国式现代化为主题、以制度建设为主线、以经济体制改革为牵引，坚持党的全面领导、以人民为中心、守正创新、以制度建设为主线、全面依法治国、系统观念六条原则。",
+       "s": 4
+      },
+      {
+       "t": "开放也是改革，开放是中国式现代化的鲜明标识；制度型开放是高水平对外开放的重要标志，增进民生福祉是对外开放的根本目的。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题七",
+     "title": "“四新”",
+     "points": [
+      {
+       "t": "新发展阶段：全面建成小康社会、实现第一个百年奋斗目标之后，开启全面建设社会主义现代化国家新征程、向第二个百年奋斗目标进军，标志着我国进入新发展阶段。",
+       "s": 4
+      },
+      {
+       "t": "新发展阶段是社会主义初级阶段历史进程中的一个重要阶段，不是新的历史阶段；进入新发展阶段，我国经济已由高速增长阶段转向高质量发展阶段。",
+       "s": 4
+      },
+      {
+       "t": "新发展理念是新时代我国发展壮大的必由之路，是实现高质量发展的指导原则；创新是第一动力、协调是内在要求、绿色是必要条件、开放是必由之路、共享是本质要求。",
+       "s": 5
+      },
+      {
+       "t": "构建新发展格局（以国内大循环为主体、国内国际双循环相互促进）是把握未来发展主动权的战略性布局和先手棋，不是被迫之举和权宜之计，是推动高质量发展的战略基点。",
+       "s": 4
+      },
+      {
+       "t": "新发展格局是开放的国内国际双循环，不是封闭的国内单循环；是以全国统一大市场基础上的国内大循环为主体，不是各地都搞自我小循环。",
+       "s": 4
+      },
+      {
+       "t": "六个提法：主线是深化供给侧结构性改革，战略基点是扩大内需，关键是经济循环畅通无阻，最本质特征是实现高水平自立自强，重要前提和保障是守住安全发展底线，重要支撑是形成强大国内市场。",
+       "s": 4
+      },
+      {
+       "t": "新质生产力是创新起主导作用、符合新发展理念的先进生产力质态，由技术革命性突破、生产要素创新性配置、产业深度转型升级催生，以全要素生产率大幅提升为核心标志，特点是创新、关键在质优、本质是先进生产力。",
+       "s": 5
+      },
+      {
+       "t": "发展新质生产力的基本路径是科技创新和产业创新融合：基础是增加高质量科技供给，关键是强化企业科技创新主体地位，途径是促进科技成果转化应用。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题八",
+     "title": "推动高质量发展",
+     "points": [
+      {
+       "t": "高质量发展是能够很好满足人民日益增长的美好生活需要、体现新发展理念的发展，是创新成为第一动力、协调成为内生特点、绿色成为普遍形态、开放成为必由之路、共享成为根本目的的发展，是从“有没有”转向“好不好”的发展。",
+       "s": 4
+      },
+      {
+       "t": "高质量发展是新时代我国经济社会发展的鲜明主题，是全面建设社会主义现代化国家的首要任务，是新时代的硬道理。",
+       "s": 5
+      },
+      {
+       "t": "三大意义：为全面建设社会主义现代化国家提供更为坚实的物质基础，是不断满足人民美好生活需要的重要保证，是维护国家长治久安的必然要求。",
+       "s": 3
+      },
+      {
+       "t": "提法链：主线是深化供给侧结构性改革，根本动力是改革创新，战略基点是构建新发展格局，内在要求和重要着力点是发展新质生产力，关键环节是绿色化低碳化，必由之路是高水平科技自立自强，最终目的是人民幸福安康。",
+       "s": 4
+      },
+      {
+       "t": "现代化产业体系：巩固优势产业领先地位是支撑国际竞争力的基石，战略性新兴产业具有先导性，数字经济成为新一轮国际竞争的重点领域。",
+       "s": 3
+      },
+      {
+       "t": "农业强国是社会主义现代化强国的根基；乡村振兴以农业农村现代化为总目标、以农业农村优先发展为总方针、以“产业兴旺、生态宜居、乡风文明、治理有效、生活富裕”为总要求。",
+       "s": 4
+      },
+      {
+       "t": "全面推进乡村振兴的底线任务是巩固拓展脱贫攻坚成果，把增加农民收入作为“三农”工作的中心任务，保障粮食安全要坚持“藏粮于地、藏粮于技”。",
+       "s": 3
+      },
+      {
+       "t": "促进区域协调发展是贯彻新发展理念的重要内容、中国式现代化的内在要求；城镇化是现代化的必由之路，推进以县城为重要载体的城镇化建设。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题九",
+     "title": "坚持和完善社会主义基本经济制度",
+     "points": [
+      {
+       "t": "社会主义基本经济制度是我国生产关系在制度上的体现，在经济制度体系中具有基础性决定性地位，是中国特色社会主义制度的重要支柱。",
+       "s": 4
+      },
+      {
+       "t": "新概括为三方面：公有制为主体、多种所有制经济共同发展，按劳分配为主体、多种分配方式并存，社会主义市场经济体制，三者相互联系、相互支持、相互促进。",
+       "s": 4
+      },
+      {
+       "t": "所有制结构是基本经济制度的基础，决定分配方式和资源配置方式；坚持“两个毫不动摇”，公有制主体地位和国有经济主导作用不能动摇。",
+       "s": 4
+      },
+      {
+       "t": "非公有制经济是社会主义市场经济的重要组成部分，是稳定经济的重要基础、国家税收的重要来源、就业创业的重要领域、技术创新的重要主体、金融发展的重要依托；民营经济是推进中国式现代化的生力军。",
+       "s": 4
+      },
+      {
+       "t": "要注意“社会主义市场经济”这个定语：非公有制经济不是社会主义性质的经济，但在市场中各种所有制经济都是主体。",
+       "s": 4
+      },
+      {
+       "t": "基本分配制度由我国社会主义性质和基本国情决定，有利于调动各方面积极性、实现效率和公平有机统一。",
+       "s": 3
+      },
+      {
+       "t": "高水平社会主义市场经济体制是中国式现代化的重要保障，核心是处理好政府和市场的关系；使市场在资源配置中起决定性作用、更好发挥政府作用，做到既“放得活”又“管得好”。",
+       "s": 4
+      },
+      {
+       "t": "构建全国统一大市场的基本要求是“五统一、一开放”（统一市场基础制度、基础设施、政府行为尺度、监管执法、要素资源市场，持续扩大对内对外开放），是构建新发展格局的基础支撑。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十",
+     "title": "社会主义现代化建设的教育、科技、人才战略",
+     "points": [
+      {
+       "t": "教育是根本、科技是关键、人才是基础；必须坚持科技是第一生产力、人才是第一资源、创新是第一动力。",
+       "s": 4
+      },
+      {
+       "t": "建设教育强国、科技强国、人才强国具有内在一致性和相互支撑性，要坚持教育发展、科技创新、人才培养一体推进。",
+       "s": 4
+      },
+      {
+       "t": "建设教育强国是全面建成社会主义现代化强国的战略先导、基础工程；教育是强国建设、民族复兴之基。",
+       "s": 4
+      },
+      {
+       "t": "教育具有政治属性，根本任务是立德树人；培养什么人、怎样培养人、为谁培养人是教育的根本问题，也是建设教育强国的核心课题。",
+       "s": 4
+      },
+      {
+       "t": "教育具有人民属性，人民满意是发展教育的根本尺度，教育公平是社会公平的重要基础。",
+       "s": 3
+      },
+      {
+       "t": "实现高水平科技自立自强是国家强盛和民族复兴的战略基石、应对风险挑战和维护国家利益的必然选择、构建新发展格局的内在要求；关键核心技术是要不来、买不来、讨不来的。",
+       "s": 4
+      },
+      {
+       "t": "自力更生是奋斗基点，自主创新是必由之路；自主创新包括原始创新、集成创新、开放创新，基础研究是科技创新的源头。",
+       "s": 3
+      },
+      {
+       "t": "人才是实现民族振兴、赢得国际竞争主动的战略资源，要抓好国家战略人才力量储备，建设世界重要人才中心和创新高地。",
+       "s": 3
+      },
+      {
+       "t": "创新是引领发展的第一动力，必须把创新摆在我国现代化建设全局的核心地位。",
+       "s": 5
+      },
+      {
+       "t": "实现更多「从 0 到 1」的突破，必须把提升原始创新能力摆在更加突出的位置；基础研究是科技创新的源头。",
+       "s": 5
+      },
+      {
+       "t": "关键核心技术是要不来、买不来、讨不来的；实现高水平科技自立自强是国家强盛之基、安全之要。",
+       "s": 4
+      },
+      {
+       "t": "强化企业科技创新主体地位：发展新质生产力的关键环节是强化企业科技创新主体地位，途径是促进科技成果转化应用。",
+       "s": 4
+      },
+      {
+       "t": "教育、科技、人才一体推进：教育是根本、科技是关键、人才是基础，三者相互支撑。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题十一",
+     "title": "发展全过程人民民主",
+     "points": [
+      {
+       "t": "人民民主是社会主义的生命，没有民主就没有社会主义、就没有社会主义的现代化、就没有中华民族伟大复兴；民主首先而且主要是一种国家制度。",
+       "s": 4
+      },
+      {
+       "t": "人民代表大会制度是根本政治制度，是实现全过程人民民主的重要制度载体，有“3个有效保证”，但它保证人民当家作主不等于人民都直接参加国家事务管理。",
+       "s": 4
+      },
+      {
+       "t": "我国实行“共产党领导、多党派合作，共产党执政、多党派参政”的新型政党制度，不是多党制；人民政协是国家治理体系的重要组成部分，职能是政治协商、民主监督、参政议政，主题是团结和民主。",
+       "s": 4
+      },
+      {
+       "t": "我国国家结构是单一制，民族区域自治制度是单一制国家结构的体现；1954年全国人大建立后，人民政协不再是国家权力机关。",
+       "s": 3
+      },
+      {
+       "t": "坚持党的领导、人民当家作主、依法治国有机统一：党的领导是根本保证，人民当家作主是本质特征，依法治国是基本方式；走中国特色社会主义政治发展道路最根本的是坚持党的领导。",
+       "s": 5
+      },
+      {
+       "t": "全过程人民民主是过程民主和成果民主、程序民主和实质民主、直接民主和间接民主、人民民主和国家意志的统一，是全链条、全方位、全覆盖的民主，是最广泛、最真实、最管用的民主。",
+       "s": 5
+      },
+      {
+       "t": "协商民主是实践全过程人民民主的重要形式，是党的群众路线在政治领域的重要体现；选举民主和协商民主相互补充、相得益彰，共同构成我国民主政治的制度特点和优势。",
+       "s": 4
+      },
+      {
+       "t": "统战工作的本质要求是大团结大联合，党的领导是统一战线最核心最根本的问题；铸牢中华民族共同体意识是新时代党的民族工作的主线。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十二",
+     "title": "全面依法治国",
+     "points": [
+      {
+       "t": "正确处理政治和法治的关系：党和法的关系是政治和法治关系的集中反映，是全面依法治国的根本问题，也是法治建设的核心问题。",
+       "s": 4
+      },
+      {
+       "t": "党的领导和社会主义法治是一致的：社会主义法治必须坚持党的领导，党的领导必须依靠社会主义法治。",
+       "s": 4
+      },
+      {
+       "t": "改革和法治相辅相成、相伴而生，如鸟之两翼、车之双轮。",
+       "s": 3
+      },
+      {
+       "t": "法治和德治都是治国理政不可或缺的重要手段。",
+       "s": 3
+      },
+      {
+       "t": "依法治国和依规治党：依规治党深入党心，依法治国才能深入民心，坚持二者有机统一是全面依法治国的内在要求。",
+       "s": 4
+      },
+      {
+       "t": "本专题只保留“统筹处理全面依法治国的重大关系”；重要性、法治道路、总抓手（建设中国特色社会主义法治体系）、首要任务（依宪治国、依宪执政）、总目标与工作布局见本书第五部分专题十三、十四、十五。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十三",
+     "title": "建设社会主义文化强国",
+     "points": [
+      {
+       "t": "文化繁荣兴盛是实现中华民族伟大复兴的精神支撑，是建设社会主义现代化强国的应有之义、满足人民美好生活需要的内在要求、在世界文化激荡中站稳脚跟的前提基础。",
+       "s": 4
+      },
+      {
+       "t": "文化自信是更基础、更广泛、更深厚的自信，是一个国家、一个民族发展中最基本、最深沉、最持久的力量。",
+       "s": 4
+      },
+      {
+       "t": "三个基础：中华优秀传统文化是深厚基础（民族根脉），革命文化和社会主义先进文化是坚强基石，中国特色社会主义伟大实践是现实基础。",
+       "s": 4
+      },
+      {
+       "t": "意识形态关乎旗帜、关乎道路、关乎国家政治安全；意识形态工作是为国家立心、为民族立魂的工作；坚持马克思主义在意识形态领域指导地位的根本制度。",
+       "s": 4
+      },
+      {
+       "t": "新闻舆论工作坚持正确政治方向是第一位要求，党性原则是根本原则；互联网是意识形态工作的主阵地、主战场、最前沿。",
+       "s": 3
+      },
+      {
+       "t": "中华文明五个突出特性：连续性、创新性、统一性、包容性、和平性（“决定”的条数分别为1、2、4、3、4）。",
+       "s": 4
+      },
+      {
+       "t": "中华优秀传统文化是中华文明的智慧结晶和精华所在，是中华民族的根和魂，是我们党创新理论的“根”，是最深厚的文化软实力。",
+       "s": 4
+      },
+      {
+       "t": "国家文化软实力从根本上取决于其核心价值观的生命力、凝聚力、感召力；要努力塑造可信、可爱、可敬的中国形象。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十四",
+     "title": "以保障和改善民生为重点加强社会建设",
+     "points": [
+      {
+       "t": "让人民生活幸福是“国之大者”；增进民生福祉是坚持立党为公、执政为民的本质要求，是社会主义生产的根本目的，是全面建设社会主义现代化国家的应有之义。",
+       "s": 4
+      },
+      {
+       "t": "发展是解决民生问题的“总钥匙”，民生是发展的“指南针”；抓民生也是抓发展。",
+       "s": 4
+      },
+      {
+       "t": "收入分配是民生之源，分配制度是促进共同富裕的基础性制度；构建初次分配、再分配、第三次分配协调配套的制度体系。",
+       "s": 4
+      },
+      {
+       "t": "就业是最基本的民生，是最大的民生工程、民心工程、根基工程；新时代就业工作的新定位新使命是促进高质量充分就业。",
+       "s": 4
+      },
+      {
+       "t": "社会保障是民生保障安全网、收入分配调节器、经济运行减震器，主体是社会保险，重点是增强公平性、适应流动性、保证可持续性。",
+       "s": 4
+      },
+      {
+       "t": "人民健康是社会文明进步的基础，是民族昌盛和国家富强的重要标志，要推进健康中国建设。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十五",
+     "title": "在共建共治共享中推进社会治理现代化",
+     "points": [
+      {
+       "t": "社会治理关系国家长治久安、社会安定有序、人民安居乐业；要在党的领导下，以政府为主导、以社会多元主体参与为基础、以维护人民群众根本利益为核心。",
+       "s": 3
+      },
+      {
+       "t": "社会治理体系的内容：党委领导、政府负责、民主协商、社会协同、公众参与、法治保障、科技支撑。",
+       "s": 4
+      },
+      {
+       "t": "共建共治共享理念中，共建是基础、共治是关键、共享是目标；社会治理共同体是人人有责、人人尽责、人人享有。",
+       "s": 4
+      },
+      {
+       "t": "新时代加强和创新社会治理的要求：系统治理、依法治理、综合治理、源头治理。",
+       "s": 3
+      },
+      {
+       "t": "基层治理是国家治理的基石，城乡社区是社会治理最基本的单元、是联系服务群众的“最后一公里”，社会治理重心必须向基层下移。",
+       "s": 4
+      },
+      {
+       "t": "坚持和发展新时代“枫桥经验”“浦江经验”；市域是将风险隐患解决在基层、化解在萌芽状态最直接最有效的治理层级。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十六",
+     "title": "建设社会主义生态文明",
+     "points": [
+      {
+       "t": "生态兴则文明兴，生态环境是人类生存最为基础的条件，生态文明是人类文明发展的历史趋势；中国式现代化是人与自然和谐共生的现代化。",
+       "s": 4
+      },
+      {
+       "t": "绿水青山就是金山银山，揭示了保护生态环境就是保护生产力、改善生态环境就是发展生产力的道理，指明了实现发展和保护协同共生的新路径。",
+       "s": 5
+      },
+      {
+       "t": "生态文明建设是重大经济问题，也是关系党的使命宗旨的重大政治问题、关系民生福祉的重大社会问题；良好生态环境是最公平的公共产品、最普惠的民生福祉。",
+       "s": 4
+      },
+      {
+       "t": "新时代生态文明建设的四个重大转变：由重点整治到系统治理、由被动应对到主动作为、由全球环境治理参与者到引领者、由实践探索到科学理论指导。",
+       "s": 3
+      },
+      {
+       "t": "坚持把绿色低碳发展作为解决生态环境问题的治本之策，推动经济社会发展绿色化、低碳化是实现高质量发展的关键环节，减污降碳协同增效是全面绿色转型的总抓手。",
+       "s": 4
+      },
+      {
+       "t": "坚持山水林田湖草沙一体化保护和系统治理，划定生态保护红线、永久基本农田、城镇开发边界三条控制线，构建以国家公园为主体的自然保护地体系。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十七",
+     "title": "维护和塑造国家安全",
+     "points": [
+      {
+       "t": "国家安全是民族复兴的根基，社会稳定是国家强盛的前提，国家安全是中国式现代化行稳致远的重要基础；由大向强、将强未强之际往往是国家安全的高风险期。",
+       "s": 4
+      },
+      {
+       "t": "总体国家安全观的核心要义集中体现为“十个坚持”，其中坚持党对国家安全工作的绝对领导是“根”和“魂”。",
+       "s": 4
+      },
+      {
+       "t": "五大要素：以人民安全为宗旨、以政治安全为根本、以经济安全为基础、以军事科技文化社会安全为保障、以促进国际安全为依托。",
+       "s": 5
+      },
+      {
+       "t": "总体国家安全观的关键是“总体”，强调“大安全”理念，统筹外部安全和内部安全、国土安全和国民安全、传统安全和非传统安全、自身安全和共同安全。",
+       "s": 3
+      },
+      {
+       "t": "统筹发展和安全：发展是安全的基础，安全是发展的条件，二者是一体之两翼、驱动之双轮，发展是解决安全问题的总钥匙。",
+       "s": 4
+      },
+      {
+       "t": "政治安全是国家安全的根本，是新时代中国国家安全的生命线；构建新安全格局必须把维护政治安全放在首要位置，主要内容是政权安全、制度安全、意识形态安全。",
+       "s": 4
+      },
+      {
+       "t": "国土安全是立国之基，经济安全是国家安全的基础，社会安全是人民群众安全感的晴雨表；健全国家安全体系是保障国家安全的治本之策。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十八",
+     "title": "建设巩固国防和强大人民军队",
+     "points": [
+      {
+       "t": "国防和军队现代化是中国式现代化的重要组成部分，要建设同我国国际地位相称、同国家安全和发展利益相适应的巩固国防和强大人民军队。",
+       "s": 3
+      },
+      {
+       "t": "新时代人民军队使命任务“四个战略支撑”：为巩固党的领导和社会主义制度、为捍卫国家主权统一和领土完整、为维护海外利益、为促进世界和平与发展提供战略支撑。",
+       "s": 4
+      },
+      {
+       "t": "党在新时代的强军目标：建设一支听党指挥、能打胜仗、作风优良的人民军队，把人民军队建设成为世界一流军队。",
+       "s": 5
+      },
+      {
+       "t": "听党指挥是灵魂（首要、命脉所在），能打胜仗是核心（根本职能和根本指向），作风优良是保证；坚持党对人民军队的绝对领导是永远不变的军魂。",
+       "s": 4
+      },
+      {
+       "t": "新“三步走”：2027年实现建军一百年奋斗目标，2035年基本实现国防和军队现代化，本世纪中叶全面建成世界一流军队。",
+       "s": 4
+      },
+      {
+       "t": "政治建军是人民军队立军之本；军委主席负责制是坚持党对人民军队绝对领导的根本制度和根本实现形式，处于最高层次、居于统领地位。",
+       "s": 3
+      },
+      {
+       "t": "高质量推进国防和军队现代化，根本指向和检验标准始终是战斗力，巩固提高一体化国家战略体系和能力是必由之路。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十九",
+     "title": "坚持“一国两制”和推进祖国完全统一",
+     "points": [
+      {
+       "t": "“一国两制”的根本宗旨是维护国家主权、安全、发展利益，保持香港、澳门长期繁荣稳定；维护国家主权、安全、发展利益是“一国两制”方针的最高原则。",
+       "s": 4
+      },
+      {
+       "t": "“一国”是实行“两制”的前提和基础（是根、是本），“两制”从属和派生于“一国”并统一于“一国”之内，国家的主体必须实行社会主义制度。",
+       "s": 4
+      },
+      {
+       "t": "中央全面管治权是授权特别行政区高度自治的前提和基础，高度自治权是中央行使全面管治权的体现，二者是源与流、本与末的关系。",
+       "s": 4
+      },
+      {
+       "t": "高度自治不是完全自治、也不是分权，而是中央授予的地方事务管理权，特别行政区不存在所谓的“剩余权力”。",
+       "s": 3
+      },
+      {
+       "t": "宪法和基本法共同构成特别行政区的宪制基础；要坚定落实“爱国者治港”“爱国者治澳”，坚持依法治港治澳。",
+       "s": 4
+      },
+      {
+       "t": "实现祖国完全统一由中华民族伟大复兴的时和势决定，是不可阻挡的历史潮流；国家统一永远是中国核心利益的核心，是一条不可逾越的红线。",
+       "s": 4
+      },
+      {
+       "t": "“和平统一、一国两制”方针是实现两岸统一的最佳方式，关键是坚持体现一个中国原则的“九二共识”、反对“台独”，核心是认同两岸同属一个中国。",
+       "s": 4
+      },
+      {
+       "t": "决定两岸关系走向、实现祖国完全统一的关键因素是祖国大陆的发展进步，最大现实威胁是“台独”势力及其分裂活动；“十个坚持”总体方略中，根本保证是党中央集中统一领导，政治基础是一个中国原则和“九二共识”。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题二十",
+     "title": "全面从严治党",
+     "points": [
+      {
+       "t": "关键在党，关键在全面从严治党；全面从严治党是党永葆生机活力、走好新的赶考之路的必由之路，是新时代党的建设的鲜明主题。",
+       "s": 5
+      },
+      {
+       "t": "全面从严治党，核心是加强党的领导，基础在全面，关键在严，要害在治；要构建内容上全涵盖、对象上全覆盖、责任上全链条、制度上全贯通的体系。",
+       "s": 4
+      },
+      {
+       "t": "党的政治建设是党的根本性建设，必须摆在首位；首要任务是保证全党服从中央、维护党中央权威和集中统一领导，政治方向是党生存发展第一位的问题。",
+       "s": 4
+      },
+      {
+       "t": "思想建设是党的基础性建设，根本任务是坚持用党的创新理论凝心铸魂；组织路线的重点是严密党的组织体系，关键是建设高素质专业化干部队伍。",
+       "s": 4
+      },
+      {
+       "t": "作风问题的核心是党同人民群众的关系问题；加强纪律建设是全面从严治党的治本之策；制度治党、依规治党是长远和根本之策，党内监督在各种监督形式中最根本、第一位。",
+       "s": 3
+      },
+      {
+       "t": "腐败是危害党的生命力和战斗力的最大毒瘤、是党长期执政面临的最大威胁；反腐败是最彻底的自我革命、是全面从严治党的“必答题”；一体推进不敢腐、不能腐、不想腐，不敢是前提、不能是关键、不想是根本。",
+       "s": 4
+      },
+      {
+       "t": "勇于自我革命是党跳出历史周期率的第二个答案，是党区别于其他政党的显著标志、最大优势和最鲜明品格；“四个自我”即自我净化、自我完善、自我革新、自我提高。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "时政一",
+     "title": "庆祝中国共产党成立105周年大会讲话",
+     "points": [
+      {
+       "t": "四段历程：新民主主义革命、社会主义革命和建设、改革开放和社会主义现代化建设、新时代中国特色社会主义。",
+       "s": 5
+      },
+      {
+       "t": "五大成就：从根本上改变中国人民前途命运、开辟实现中华民族伟大复兴的正确道路、展示马克思主义强大生命力、深刻影响世界历史进程、锻造强大的中国共产党。",
+       "s": 5
+      },
+      {
+       "t": "六大优秀特质：矢志追求真理、深深植根人民、勇担历史使命、顺应发展潮流、敢于善于斗争、注重强健自身。",
+       "s": 5
+      },
+      {
+       "t": "「五个必须」：坚持党的基本理论、基本路线、基本方略；紧紧依靠人民创造历史伟业；积极应对前进道路上的风险挑战；持续推动构建人类命运共同体；持之以恒推进全面从严治党。",
+       "s": 5
+      },
+      {
+       "t": "「三个务必」：务必不忘初心、牢记使命；务必谦虚谨慎、艰苦奋斗；务必敢于斗争、善于斗争。",
+       "s": 4
+      },
+      {
+       "t": "到本世纪中叶，全面建成社会主义现代化强国、实现第二个百年奋斗目标。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "时政二",
+     "title": "习近平党建思想",
+     "points": [
+      {
+       "t": "2026 年 6 月，全国党建工作座谈会对学习贯彻习近平党建思想作出工作部署。",
+       "s": 4
+      },
+      {
+       "t": "形成：党的十八大以来，围绕「建设什么样的长期执政的马克思主义政党、怎样建设长期执政的马克思主义政党」提出一系列新理念新思想新战略。",
+       "s": 5
+      },
+      {
+       "t": "地位：丰富和发展了马克思主义建党学说；是「两个结合」推进党的理论创新的重大成果；是习近平新时代中国特色社会主义思想的重要组成部分；是新时代党的建设新的伟大工程的根本遵循和行动指南。",
+       "s": 5
+      },
+      {
+       "t": "核心要义：坚持党的领导。党的领导是党和国家事业不断发展的「定海神针」，是做好党和国家各项工作的根本保证。",
+       "s": 5
+      },
+      {
+       "t": "坚持党的领导，首先是坚持党中央集中统一领导；这是我们不断取得胜利的根本所在。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "时政三",
+     "title": "树立和践行正确政绩观",
+     "points": [
+      {
+       "t": "为什么人的问题，是政绩观的首要问题，检验着一个政党的性质宗旨，决定着干事创业的根本方向。",
+       "s": 5
+      },
+      {
+       "t": "为民造福是最大政绩；人民立场是中国共产党的根本政治立场；为民造福是立党为公、执政为民的本质要求。",
+       "s": 5
+      },
+      {
+       "t": "把为老百姓办了多少好事实事作为检验政绩的重要标准。",
+       "s": 4
+      },
+      {
+       "t": "政绩观与发展观密切相关，有什么样的发展观就会产生什么样的政绩观。",
+       "s": 4
+      },
+      {
+       "t": "功成不必在我、功成必定有我、以实干出政绩，是树立和践行正确政绩观的思想境界和实践路径。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "时政四",
+     "title": "「十五五」规划纲要主要内容",
+     "points": [
+      {
+       "t": "战略定位：「十五五」时期在基本实现社会主义现代化进程中具有承前启后的重要地位，是夯实基础、全面发力的关键时期。",
+       "s": 5
+      },
+      {
+       "t": "发展环境：我国发展处于战略机遇和风险挑战并存、不确定难预料因素增多的时期。",
+       "s": 4
+      },
+      {
+       "t": "指导思想：以经济建设为中心，以推动高质量发展为主题，以改革创新为根本动力，以满足人民日益增长的美好生活需要为根本目的，以全面从严治党为根本保障。",
+       "s": 5
+      },
+      {
+       "t": "六个坚持原则：坚持党的全面领导、坚持人民至上、坚持高质量发展、坚持全面深化改革、坚持有效市场和有为政府相结合、坚持统筹发展和安全。",
+       "s": 5
+      },
+      {
+       "t": "七大目标：高质量发展取得显著成效；科技自立自强水平大幅提高；进一步全面深化改革取得新突破；社会文明程度明显提升；人民生活品质不断提高；美丽中国建设取得新的重大进展；国家安全屏障更加巩固。",
+       "s": 5
+      },
+      {
+       "t": "到 2035 年：经济实力、科技实力、国防实力、综合国力和国际影响力大幅跃升，人均国内生产总值达到中等发达国家水平（比 2020 年翻一番），基本实现社会主义现代化。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "时政五",
+     "title": "特别专题知识点拓展：党的领导",
+     "points": [
+      {
+       "t": "坚持党的全面领导，是坚持和发展中国特色社会主义的必由之路。",
+       "s": 5
+      },
+      {
+       "t": "党的领导是党和国家事业不断发展的「定海神针」，是做好党和国家各项工作的根本保证。",
+       "s": 4
+      },
+      {
+       "t": "坚持和加强党的全面领导，是我们过去能够成功的根本原因，也是未来继续取得成功的根本保证。",
+       "s": 4
+      },
+      {
+       "t": "全面从严治党是党永葆生机活力、走好新的赶考之路的必由之路；是新时代党的自我革命的伟大实践、新时代党的建设的鲜明主题。",
+       "s": 4
+      },
+      {
+       "t": "党的自我革命是跳出治乱兴衰历史周期率的第二个答案。",
+       "s": 4
+      },
+      {
+       "t": "全面从严治党：核心是加强党的领导，基础在全面，关键在严，要害在治。",
+       "s": 4
+      },
+      {
+       "t": "党的政治建设是党的根本性建设，决定党的建设方向和效果；政治方向是党生存发展第一位的问题。",
+       "s": 4
+      },
+      {
+       "t": "党的政治建设的首要任务，就是保证全党服从中央，坚持党中央权威和集中统一领导。",
+       "s": 4
+      },
+      {
+       "t": "作风问题本质上是党性问题，核心是党同人民群众的关系问题。",
+       "s": 3
+      },
+      {
+       "t": "政治纪律是最重要、最根本、最关键的纪律；反腐败是最彻底的自我革命。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "时政六",
+     "title": "二十届五中全会（2026.10，补充）",
+     "points": [
+      {
+       "t": "审议通过《中共中央关于持之以恒推进全面从严治党若干重大问题的决定》。",
+       "s": 5
+      },
+      {
+       "t": "全会形成习近平党建思想，作为习近平新时代中国特色社会主义思想的重要组成部分。",
+       "s": 5
+      },
+      {
+       "t": "决定党的二十大于 2027 年下半年在北京召开。",
+       "s": 5
+      },
+      {
+       "t": "指出「十四五」圆满收官、「十五五」开局良好，并隆重庆祝中国共产党成立 105 周年。",
+       "s": 4
+      },
+      {
+       "t": "跳出治乱兴衰历史周期率的两个答案：让人民来监督政府、自我革命。",
+       "s": 4
+      },
+      {
+       "t": "全面从严治党：核心是加强党的领导，基础在全面，关键在严，要害在治。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "时政七",
+     "title": "2026 年全国两会（补充）",
+     "points": [
+      {
+       "t": "2026 年 3 月，十四届全国人大四次会议批准《国民经济和社会发展第十五个五年规划纲要》。",
+       "s": 5
+      },
+      {
+       "t": "纲要设 20 项主要指标、6 方面 109 项重大工程项目。",
+       "s": 4
+      },
+      {
+       "t": "三篇战略部署：建设现代化产业体系、加快高水平科技自立自强（新质生产力）、深入推进数字中国建设。",
+       "s": 5
+      },
+      {
+       "t": "2026 年是「十五五」开局之年，做好经济工作至关重要。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "时政八",
+     "title": "2026 重要会议与讲话",
+     "points": [
+      {
+       "t": "2026 年 1 月，二十届中央纪委五次全会召开，部署持续发力、纵深推进反腐败斗争。",
+       "s": 4
+      },
+      {
+       "t": "2026 年 1 月 20 日，省部级主要领导干部学习贯彻党的二十届四中全会精神专题研讨班开班，聚焦建设现代化产业体系、发展新质生产力。",
+       "s": 5
+      },
+      {
+       "t": "2026 年 1 月 30 日，中央政治局就前瞻布局和发展未来产业进行集体学习，强调以科技创新引领产业创新。",
+       "s": 4
+      },
+      {
+       "t": "2026 年 7 月 1 日，庆祝中国共产党成立 105 周年大会在北京隆重举行，习近平发表重要讲话。",
+       "s": 5
+      },
+      {
+       "t": "2026 年 7 月 8 日，国家科学技术奖励大会、两院院士大会、中国科协第十一次全国代表大会召开。",
+       "s": 4
+      },
+      {
+       "t": "2026 年 7 月 30 日，中央政治局会议决定 10 月在北京召开二十届五中全会。",
+       "s": 4
+      },
+      {
+       "t": "2026 年 10 月 26—29 日，二十届五中全会召开，通过全面从严治党《决定》，形成习近平党建思想，决定二十一大 2027 年下半年召开。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "时政·白皮书",
+     "title": "2026 重要白皮书",
+     "points": [
+      {
+       "t": "2026 年 2 月 10 日，国新办发布《「一国两制」下香港维护国家安全的实践》白皮书，阐明香港维护国家安全的历史性成就和历史性变革。",
+       "s": 4
+      },
+      {
+       "t": "2026 年 6 月 17 日，国新办发布《构建更加公正合理的全球治理体系：中国的理念、倡议与行动》白皮书；全球治理倡议提出五大核心理念：奉行主权平等、遵守国际法治、践行多边主义、倡导以人为本、注重行动导向。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "时政十",
+     "title": "2026 经济与改革",
+     "points": [
+      {
+       "t": "中央经济工作会议（2025.12）提出「五个必须」，明确 2026 年继续实施更加积极的财政政策、适度宽松的货币政策。",
+       "s": 5
+      },
+      {
+       "t": "2026 年 2 月，中央一号文件发布，锚定农业农村现代化，扎实推进乡村全面振兴。",
+       "s": 4
+      },
+      {
+       "t": "2026 年 3 月，部署第二轮土地承包到期后再延长 30 年整省试点。",
+       "s": 4
+      },
+      {
+       "t": "2026 年 4 月 7—8 日，全国服务业大会在北京召开，聚焦服务业高质量发展。",
+       "s": 4
+      },
+      {
+       "t": "反垄断与整治「内卷式」竞争：2026 年 7 月，市场监管总局对携程集团滥用市场支配地位作出行政处罚，罚没款合计 51.79 亿元。",
+       "s": 3
+      },
+      {
+       "t": "2026 年 3 月 23 日，习近平在河北雄安新区考察，强调高标准高质量推进雄安新区建设。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "时政十一",
+     "title": "2026 科技与教育",
+     "points": [
+      {
+       "t": "2026 年 4 月 30 日，习近平在上海出席加强基础研究座谈会，强调把提升原始创新能力摆在更加突出位置。",
+       "s": 5
+      },
+      {
+       "t": "2026 年 4 月中国航天日：发布嫦娥五号月球样品新矿物「镁嫦娥石」「铈嫦娥石」，以及天问三号、羲和二号国际合作信息。",
+       "s": 3
+      },
+      {
+       "t": "2026 年 7 月，世界人工智能大会暨人工智能全球治理高级别会议在上海举行，聚焦人工智能全球治理与产业应用。",
+       "s": 4
+      },
+      {
+       "t": "实现更多「从 0 到 1」的突破，必须把提升原始创新能力摆在更加突出位置；基础研究是科技创新的源头。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "时政十二",
+     "title": "2026 党建与社会治理",
+     "points": [
+      {
+       "t": "2026 年 6 月，全国党建工作座谈会部署学习贯彻习近平党建思想。",
+       "s": 5
+      },
+      {
+       "t": "2026 年 7 月，中共中央、国务院印发《关于加强新时代社会工作的意见》，明确新时代社会工作的总体要求。",
+       "s": 4
+      },
+      {
+       "t": "树立和践行正确政绩观：为民造福是最大政绩，功成不必在我、功成必定有我。",
+       "s": 4
+      },
+      {
+       "t": "2026 年 7 月 27 日，部署法治中国建设规划（2026—2030 年），全面推进科学立法、严格执法、公正司法、全民守法。",
+       "s": 4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shigang",
+   "name": "中国近现代史纲要",
+   "short": "史纲",
+   "color": "#b91c1c",
+   "timeline": [
+    {
+     "y": "1840–1842",
+     "e": "鸦片战争",
+     "p": "林则徐（虎门销烟/《四洲志》）、魏源《海国图志》",
+     "m": "中国近代史起点；《南京条约》＝第一个不平等条约",
+     "s": 5,
+     "era": "旧民主主义",
+     "sx": "专题五 爱国主义：近代民族意识觉醒",
+     "sxGo": "sixiu|专题五",
+     "detail": "1840—1842 年，英国为扭转贸易逆差向中国大量走私鸦片，林则徐虎门销烟后英国发动侵略战争。清政府战败，1842 年签订《南京条约》。这是中国近代史的起点，中国开始沦为半殖民地半封建社会，社会主要矛盾和革命任务随之改变。"
+    },
+    {
+     "y": "1843",
+     "e": "《虎门条约》《五口通商章程》",
+     "p": "—",
+     "m": "领事裁判权、片面最惠国待遇、租界 → 丧失司法主权",
+     "s": 3,
+     "era": "旧民主主义",
+     "detail": "1843 年英国强迫清政府签订，取得领事裁判权、片面最惠国待遇，并在通商口岸租赁土地建房，后演变为租界。中国由此丧失司法主权，半殖民地化程度加深。"
+    },
+    {
+     "y": "1851–1864",
+     "e": "太平天国运动",
+     "p": "洪秀全《天朝田亩制度》、洪仁玕《资政新篇》",
+     "m": "旧式农民战争最高峰；《资政新篇》第一个系统发展资本主义方案",
+     "s": 4,
+     "era": "旧民主主义",
+     "detail": "1851—1864 年，洪秀全领导，是中国旧式农民战争的最高峰。纲领《天朝田亩制度》否定封建土地所有制但带有空想性；后期洪仁玕《资政新篇》是中国近代第一个比较系统的发展资本主义的方案。因农民阶级不是新的生产力和生产关系的代表而失败。"
+    },
+    {
+     "y": "1856–1860",
+     "e": "第二次鸦片战争",
+     "p": "—",
+     "m": "《天津条约》《北京条约》，半殖民地化加深",
+     "s": 3,
+     "era": "旧民主主义",
+     "sx": "专题五 爱国主义：近代民族意识觉醒",
+     "sxGo": "sixiu|专题五",
+     "detail": "1856—1860 年，英法联军发动，火烧圆明园，强迫签订《天津条约》《北京条约》。外国公使常驻北京，中国半殖民地化程度进一步加深。"
+    },
+    {
+     "y": "1860s–1890s",
+     "e": "洋务运动",
+     "p": "奕䜣、曾国藩、李鸿章等，「中体西用」",
+     "m": "中国近代化开端；甲午战败＝失败标志",
+     "s": 3,
+     "era": "旧民主主义",
+     "detail": "19 世纪 60—90 年代，洋务派以「中学为体，西学为用」为指导，兴办近代军用和民用工业、建立新式海陆军、创办新式学堂。是中国近代化的开端；甲午战争北洋海军全军覆没，标志其失败，说明只学器物不改制度走不通。"
+    },
+    {
+     "y": "1894–1895",
+     "e": "甲午中日战争",
+     "p": "《马关条约》",
+     "m": "割台澎；商品输出→资本输出；瓜分狂潮；民族意识普遍觉醒",
+     "s": 4,
+     "era": "旧民主主义",
+     "sx": "专题五 爱国主义：民族意识普遍觉醒",
+     "sxGo": "sixiu|专题五",
+     "detail": "1894—1895 年，日本发动侵华战争，清政府战败签订《马关条约》，割让台湾、澎湖，允许外国在华投资办厂，列强掀起瓜分中国的狂潮。大大加深中国半殖民地化程度，也促使民族意识普遍觉醒。"
+    },
+    {
+     "y": "1895",
+     "e": "兴中会成立",
+     "p": "孙中山",
+     "m": "第一个革命团体；喊出「振兴中华」",
+     "s": 3,
+     "era": "旧民主主义",
+     "detail": "1895 年孙中山在檀香山创立兴中会，是中国第一个资产阶级革命团体，在其章程中喊出「振兴中华」，标志着资产阶级革命派开始登上政治舞台。"
+    },
+    {
+     "y": "1898",
+     "e": "戊戌变法（维新运动）",
+     "p": "康有为、梁启超；严复《天演论》",
+     "m": "资产阶级思想与封建思想第一次正面交锋；改良道路走不通",
+     "s": 4,
+     "era": "旧民主主义",
+     "sx": "专题四 中国精神：思想启蒙",
+     "sxGo": "sixiu|专题四",
+     "detail": "1898 年康有为、梁启超等维新派推动「百日维新」，仅 103 天即被慈禧太后镇压。它是一场资产阶级性质的政治改良运动和思想启蒙运动，证明自上而下的改良道路在中国走不通。"
+    },
+    {
+     "y": "1900–1901",
+     "e": "八国联军侵华 / 《辛丑条约》",
+     "p": "—",
+     "m": "赔款最多、获驻军权；中国完全沦为半殖民地半封建社会",
+     "s": 4,
+     "era": "旧民主主义",
+     "detail": "1900 年八国联军攻入北京，1901 年强迫签订《辛丑条约》，赔款最多、允许列强驻军。标志中国完全沦为半殖民地半封建社会。"
+    },
+    {
+     "y": "1905",
+     "e": "中国同盟会成立",
+     "p": "孙中山；《民报》发刊词",
+     "m": "第一个全国性资产阶级革命政党；三民主义；民主革命进入新阶段",
+     "s": 4,
+     "era": "旧民主主义",
+     "detail": "1905 年孙中山联合各革命团体在东京成立同盟会，是近代中国第一个领导资产阶级革命的全国性政党。以「驱除鞑虏，恢复中华，创立民国，平均地权」为纲领，后概括为三民主义，标志中国资产阶级民主革命进入新阶段。"
+    },
+    {
+     "y": "1911.5",
+     "e": "保路运动",
+     "p": "清政府宣布「铁路国有」，四川掀起保路运动",
+     "m": "成为武昌起义的导火线",
+     "s": 4,
+     "era": "旧民主主义",
+     "detail": "1911 年 5 月清政府宣布「铁路国有」，将民办铁路收归国有并出卖给列强，激起四川保路运动。清政府调兵镇压，武汉兵力空虚，成为武昌起义的导火线。"
+    },
+    {
+     "y": "1911.10",
+     "e": "辛亥革命",
+     "p": "孙中山、黄兴；武昌起义 10.10",
+     "m": "结束两千多年封建君主专制；民主共和深入人心；亚洲第一个共和制国家",
+     "s": 5,
+     "era": "旧民主主义",
+     "mz": "专题三 新民主主义革命理论：旧民主主义革命的意义与局限",
+     "mzGo": "maozhongte|专题三",
+     "xx": "专题一 综述：民族复兴的里程碑",
+     "xxGo": "xixiang|专题一",
+     "sx": "专题五 爱国主义",
+     "sxGo": "sixiu|专题五",
+     "detail": "1911 年 10 月 10 日武昌起义爆发，各省响应，清王朝土崩瓦解。它推翻了清王朝统治，结束了两千多年的封建君主专制制度，建立亚洲第一个共和制国家，使民主共和观念深入人心；但没有改变半殖民地半封建的社会性质，也没有完成反帝反封建任务。"
+    },
+    {
+     "y": "1912.1",
+     "e": "中华民国成立",
+     "p": "孙中山就职 1.1；清帝退位 2.12；《临时约法》",
+     "m": "第一部资产阶级共和国宪法性质法典",
+     "s": 3,
+     "era": "旧民主主义",
+     "mz": "专题三：资产阶级共和国方案行不通",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1912 年 1 月 1 日孙中山在南京就任临时大总统，中华民国成立；2 月 12 日清帝退位。颁布《中华民国临时约法》，是中国历史上第一部具有资产阶级共和国宪法性质的法典。"
+    },
+    {
+     "y": "1912.3",
+     "e": "袁世凯窃取革命果实",
+     "p": "袁世凯在北京就任临时大总统",
+     "m": "辛亥革命成果被窃取，北洋军阀统治开始",
+     "s": 4,
+     "era": "旧民主主义",
+     "detail": "1912 年 3 月袁世凯在北京就任临时大总统，窃取辛亥革命成果。此后北洋军阀统治开始，中国陷入军阀割据混战。"
+    },
+    {
+     "y": "1913",
+     "e": "宋教仁案 / 二次革命",
+     "p": "宋教仁被刺；孙中山发动讨袁",
+     "m": "资产阶级革命派维护共和的努力失败",
+     "s": 4,
+     "era": "旧民主主义",
+     "detail": "1913 年宋教仁被刺，孙中山发动二次革命讨袁，因力量涣散失败。资产阶级革命派维护共和的努力受挫。"
+    },
+    {
+     "y": "1915.5",
+     "e": "「二十一条」",
+     "p": "袁世凯接受日本「二十一条」大部分条款",
+     "m": "民族危机加深，激起反日爱国运动",
+     "s": 3,
+     "era": "旧民主主义",
+     "detail": "1915 年 5 月袁世凯为换取日本支持其称帝，接受日本「二十一条」大部分条款。民族危机加深，激起全国反日爱国运动。"
+    },
+    {
+     "y": "1915.9",
+     "e": "新文化运动",
+     "p": "陈独秀《青年杂志》《敬告青年》；鲁迅《狂人日记》",
+     "m": "空前思想解放；兴起标志＝《敬告青年》",
+     "s": 4,
+     "era": "旧民主主义",
+     "sx": "专题四 中国精神：思想启蒙",
+     "sxGo": "sixiu|专题四",
+     "detail": "1915 年 9 月陈独秀在上海创办《青年杂志》（后改《新青年》），以《敬告青年》为发刊词，提倡民主与科学，反对旧道德旧文学。是中国历史上一次空前的思想解放运动，为马克思主义在中国的传播创造了条件。"
+    },
+    {
+     "y": "1915.12",
+     "e": "护国运动",
+     "p": "蔡锷、李烈钧、唐继尧在云南起兵讨袁；袁世凯取消帝制",
+     "m": "粉碎袁世凯复辟帝制，共和观念深入人心",
+     "s": 4,
+     "era": "旧民主主义",
+     "detail": "1915 年 12 月袁世凯称帝，蔡锷、李烈钧、唐继尧在云南宣布独立、组织护国军讨袁。1916 年 3 月袁世凯被迫取消帝制，6 月病死。护国运动粉碎了复辟帝制的图谋，共和观念更加深入人心。"
+    },
+    {
+     "y": "1916.6",
+     "e": "北洋军阀割据",
+     "p": "袁世凯死后分裂为皖系、直系、奉系",
+     "m": "军阀混战、民不聊生，中国革命需要新力量",
+     "s": 3,
+     "era": "旧民主主义",
+     "detail": "1916 年袁世凯死后，北洋军阀分裂为皖系（段祺瑞）、直系（冯国璋等）、奉系（张作霖），相互混战，民不聊生，中国革命需要新的领导力量。"
+    },
+    {
+     "y": "1917.7",
+     "e": "张勋复辟",
+     "p": "张勋拥溥仪复辟，12 天即败",
+     "m": "复辟帝制不得人心，注定失败",
+     "s": 3,
+     "era": "旧民主主义",
+     "detail": "1917 年 7 月张勋拥溥仪复辟，仅 12 天即失败。说明复辟帝制不得人心、注定失败。"
+    },
+    {
+     "y": "1917.7",
+     "e": "护法运动",
+     "p": "孙中山南下广州，反对段祺瑞毁弃《临时约法》",
+     "m": "失败后孙中山认识到「南与北如一丘之貉」，旧民主主义革命陷入绝境",
+     "s": 4,
+     "era": "旧民主主义",
+     "detail": "1917 年孙中山南下广州，反对段祺瑞毁弃《临时约法》、拒绝恢复国会，发动护法运动，失败后认识到「南与北如一丘之貉」。表明资产阶级革命派已无力领导中国革命，旧民主主义革命陷入绝境。"
+    },
+    {
+     "y": "1918",
+     "e": "十月革命",
+     "p": "李大钊《庶民的胜利》",
+     "m": "推动先进分子从民主主义转向社会主义",
+     "s": 3,
+     "era": "旧民主主义",
+     "mz": "专题二 毛泽东思想：马克思主义在中国传播",
+     "mzGo": "maozhongte|专题二",
+     "detail": "1917 年俄国十月革命胜利，给中国送来了马克思列宁主义，推动中国先进分子从资产阶级民主主义转向社会主义，李大钊率先举起马克思主义旗帜。"
+    },
+    {
+     "y": "1919.5",
+     "e": "五四运动",
+     "p": "李大钊《我的马克思主义观》",
+     "m": "新民主主义革命开端；工人阶级独立登上政治舞台；第一次全面觉醒",
+     "s": 5,
+     "era": "新民主主义",
+     "mz": "专题三：新民主主义革命的开端",
+     "mzGo": "maozhongte|专题三",
+     "sx": "专题四 中国精神：五四精神",
+     "sxGo": "sixiu|专题四",
+     "detail": "1919 年 5 月 4 日，因巴黎和会上中国外交失败而爆发。学生发起，6 月后工人成为主力，中心由北京转到上海。它是新民主主义革命的开端，工人阶级以独立姿态登上政治舞台，实现了鸦片战争以来第一次全面觉醒，促进了马克思主义与中国工人运动的结合。"
+    },
+    {
+     "y": "1921",
+     "e": "中共一大",
+     "p": "陈独秀、李大钊（南陈北李）",
+     "m": "中国共产党诞生；开天辟地；革命面貌焕然一新",
+     "s": 5,
+     "era": "新民主主义",
+     "mz": "专题二 毛泽东思想：形成的起点",
+     "mzGo": "maozhongte|专题二",
+     "sx": "专题九 中国革命道德",
+     "sxGo": "sixiu|专题九",
+     "detail": "1921 年 7 月 23 日在上海召开，最后一天转至嘉兴南湖游船。确定党的名称为中国共产党，制定第一个纲领，把实现共产主义作为最高理想。标志中国共产党正式诞生，是中国历史上「开天辟地的大事变」，中国革命面貌焕然一新。"
+    },
+    {
+     "y": "1922",
+     "e": "中共二大",
+     "p": "—",
+     "m": "第一次提出反帝反封建民主革命纲领；统一战线政策",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题三：反帝反封建革命纲领",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1922 年 7 月在上海召开，第一次提出反帝反封建的民主革命纲领（最低纲领），并通过统一战线决议案，为中国革命指明了方向。"
+    },
+    {
+     "y": "1923",
+     "e": "中共三大",
+     "p": "—",
+     "m": "决定共产党员以个人身份加入国民党",
+     "s": 3,
+     "era": "新民主主义",
+     "mz": "专题三：统一战线",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1923 年 6 月在广州召开，决定共产党员以个人身份加入国民党，以实现国共合作，为第一次国共合作作了组织准备。"
+    },
+    {
+     "y": "1924",
+     "e": "国民党一大",
+     "p": "孙中山",
+     "m": "第一次国共合作正式形成；新三民主义",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题三：统一战线",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1924 年 1 月在广州召开，确认共产党员以个人身份加入国民党的原则，对三民主义作出新解释，事实上确立联俄、联共、扶助农工三大政策。标志第一次国共合作正式形成。"
+    },
+    {
+     "y": "1925–1926",
+     "e": "五卅运动 / 北伐战争",
+     "p": "—",
+     "m": "全国大革命高潮起点；推翻北洋军阀",
+     "s": 3,
+     "era": "新民主主义",
+     "mz": "专题三：武装斗争",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1925 年 5 月五卅运动爆发，成为全国大革命高潮的起点；1926 年 7 月北伐战争开始，以推翻北洋军阀为目标。大革命是中国近代史上动员程度最广、斗争规模最宏伟的革命。"
+    },
+    {
+     "y": "1927",
+     "e": "四一二、七一五政变",
+     "p": "—",
+     "m": "大革命失败标志",
+     "s": 3,
+     "era": "新民主主义",
+     "mz": "专题三：领导权问题",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1927 年蒋介石发动四一二反革命政变、汪精卫发动七一五反革命政变，国共合作全面破裂，大革命失败。教训是党必须坚持武装斗争、解决农民土地问题、保持统一战线中的独立性。"
+    },
+    {
+     "y": "1927–1928",
+     "e": "宁汉合流 / 东北易帜",
+     "p": "国民党各派合流；张学良宣布东北易帜",
+     "m": "国民党在形式上统一全国，建立一党专政统治",
+     "s": 3,
+     "era": "新民主主义",
+     "detail": "1927 年国民党各派「宁汉合流」，1928 年张学良宣布东北易帜，国民党在形式上统一全国，建立一党专政统治。"
+    },
+    {
+     "y": "1927.8.1",
+     "e": "南昌起义",
+     "p": "周恩来、贺龙、叶挺、朱德、刘伯承",
+     "m": "第一枪；独立领导革命战争、创建人民军队、武装夺取政权的开端",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题三：三大法宝之武装斗争",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1927 年 8 月 1 日，周恩来、贺龙、叶挺、朱德、刘伯承等领导起义，打响了武装反抗国民党反动派的第一枪，是中国共产党独立领导革命战争、创建人民军队和武装夺取政权的开端。"
+    },
+    {
+     "y": "1927.8.7",
+     "e": "八七会议",
+     "p": "汉口；毛泽东「枪杆子里出政权」",
+     "m": "土地革命和武装起义方针；历史性转变",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题三：农村包围城市道路",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1927 年 8 月 7 日在汉口召开，确定土地革命和武装起义的方针，毛泽东提出「枪杆子里出政权」。是由大革命失败到土地革命战争兴起的历史性转变，给思想混乱中的党指明了新出路。"
+    },
+    {
+     "y": "1927.9–10",
+     "e": "秋收起义 / 井冈山根据地",
+     "p": "毛泽东；三湾改编",
+     "m": "从城市转向农村；农村包围城市道路开辟",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题三：农村包围城市道路",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1927 年 9 月毛泽东领导秋收起义，攻打长沙受挫后转向农村，进行三湾改编，从组织上确立党对军队的领导。随后创建井冈山革命根据地，开辟了农村包围城市、武装夺取政权的道路。"
+    },
+    {
+     "y": "1928–1930",
+     "e": "工农武装割据理论",
+     "p": "毛《星星之火，可以燎原》《反对本本主义》",
+     "m": "开辟中国革命新道路",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题三：农村包围城市理论",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1928—1930 年，毛泽东在《中国的红色政权为什么能够存在？》《井冈山的斗争》《星星之火，可以燎原》《反对本本主义》中，系统阐述了工农武装割据思想，标志着农村包围城市道路理论的形成。"
+    },
+    {
+     "y": "1929.12",
+     "e": "古田会议",
+     "p": "毛泽东",
+     "m": "思想建党、政治建军",
+     "s": 3,
+     "era": "新民主主义",
+     "mz": "专题三：党的建设",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1929 年 12 月召开，通过古田会议决议，确立思想建党、政治建军原则，规定红军必须绝对服从党的领导。是党和人民军队建设史上的重要里程碑。"
+    },
+    {
+     "y": "1931",
+     "e": "九一八事变",
+     "p": "日本关东军",
+     "m": "抗日战争起点；揭开世界反法西斯战争序幕",
+     "s": 4,
+     "era": "新民主主义",
+     "sx": "专题五 爱国主义",
+     "sxGo": "sixiu|专题五",
+     "detail": "1931 年日本关东军制造九一八事变，侵占中国东北。这是中国人民抗日战争的起点，同时揭开了世界反法西斯战争的序幕，中日民族矛盾逐步上升。"
+    },
+    {
+     "y": "1934–1936",
+     "e": "红军长征",
+     "p": "—",
+     "m": "1936 三大主力会宁会师；中国革命转危为安的关键",
+     "s": 5,
+     "era": "新民主主义",
+     "xx": "专题一 综述：长征精神",
+     "xxGo": "xixiang|专题一",
+     "sx": "专题四 中国精神：长征精神",
+     "sxGo": "sixiu|专题四",
+     "detail": "1934—1936 年，中央红军被迫战略转移，1935 年召开遵义会议，1936 年三大主力在甘肃会宁会师。长征是中国革命转危为安的关键，宣告国民党消灭红军图谋的失败，铸就了伟大的长征精神。"
+    },
+    {
+     "y": "1935.1",
+     "e": "遵义会议",
+     "p": "贵州遵义",
+     "m": "生死攸关的转折点；独立自主解决自身问题；开始走向成熟",
+     "s": 5,
+     "era": "新民主主义",
+     "mz": "专题二：毛泽东思想初步形成",
+     "mzGo": "maozhongte|专题二",
+     "detail": "1935 年 1 月在贵州遵义召开，集中解决当时具有决定意义的军事和组织问题，事实上确立毛泽东在党中央和红军的领导地位。是党的历史上一个生死攸关的转折点，标志着党开始走向成熟，开启独立自主解决中国革命实际问题的新阶段。"
+    },
+    {
+     "y": "1935.12",
+     "e": "一二九运动 / 瓦窑堡会议",
+     "p": "—",
+     "m": "抗日救亡新高潮；确定抗日民族统一战线策略",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题三：统一战线",
+     "mzGo": "maozhongte|专题三",
+     "sx": "专题五 爱国主义",
+     "sxGo": "sixiu|专题五",
+     "detail": "1935 年 12 月 9 日一二九运动爆发，促进中华民族觉醒，标志抗日救亡运动新高潮到来；同月瓦窑堡会议确定建立抗日民族统一战线的策略，使党掌握政治上的主动权。"
+    },
+    {
+     "y": "1936.12.12",
+     "e": "西安事变",
+     "p": "张学良、杨虎城",
+     "m": "时局转换的枢纽；十年内战基本结束",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题三：统一战线",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1936 年 12 月 12 日张学良、杨虎城发动兵谏，中共中央以民族大义为重，推动和平解决。西安事变的和平解决成为时局转换的枢纽，十年内战基本结束，抗日民族统一战线初步形成。"
+    },
+    {
+     "y": "1937.7.7",
+     "e": "七七事变",
+     "p": "卢沟桥；1937.9 抗日民族统一战线正式形成",
+     "m": "全民族抗战开始",
+     "s": 4,
+     "era": "新民主主义",
+     "sx": "专题五 爱国主义",
+     "sxGo": "sixiu|专题五",
+     "detail": "1937 年 7 月 7 日卢沟桥事变爆发，中国进入全民族抗战阶段，开辟了世界反法西斯战争的东方主战场。1937 年 9 月国共合作宣言发表，第二次国共合作正式形成。"
+    },
+    {
+     "y": "1937.8",
+     "e": "洛川会议",
+     "p": "—",
+     "m": "全面抗战路线（人民战争路线）正式形成",
+     "s": 3,
+     "era": "新民主主义",
+     "mz": "专题三：全面抗战路线",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1937 年 8 月召开，制定抗日救国十大纲领，强调全国军事总动员、人民总动员。标志着党的全面抗战路线（人民战争路线）正式形成。"
+    },
+    {
+     "y": "1938",
+     "e": "《论持久战》",
+     "p": "毛泽东",
+     "m": "批驳亡国论/速胜论；三阶段；兵民是胜利之本",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题二：毛泽东思想",
+     "mzGo": "maozhongte|专题二",
+     "detail": "1938 年毛泽东发表《论持久战》，批驳「亡国论」「速胜论」，科学预见抗日战争将经过战略防御、战略相持、战略反攻三个阶段，强调「兵民是胜利之本」，指明了抗战胜利的正确道路。"
+    },
+    {
+     "y": "1938",
+     "e": "六届六中全会",
+     "p": "毛泽东",
+     "m": "提出「马克思主义中国化」命题",
+     "s": 3,
+     "era": "新民主主义",
+     "mz": "专题二：马克思主义中国化命题",
+     "mzGo": "maozhongte|专题二",
+     "detail": "1938 年召开，毛泽东作《论新阶段》报告，首次提出「马克思主义中国化」命题；基本纠正王明右倾错误。毛泽东称之为「决定中国之命运的」会议。"
+    },
+    {
+     "y": "1939–1940",
+     "e": "新民主主义理论",
+     "p": "毛《〈共产党人〉发刊词》《新民主主义论》",
+     "m": "毛泽东思想趋于成熟；三大法宝",
+     "s": 5,
+     "era": "新民主主义",
+     "mz": "专题三：新民主主义革命理论",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1939—1940 年，毛泽东发表《〈共产党人〉发刊词》《中国革命和中国共产党》《新民主主义论》，系统阐述新民主主义革命理论，提出统一战线、武装斗争、党的建设三大法宝，标志着毛泽东思想得到多方面展开而趋于成熟。"
+    },
+    {
+     "y": "1941–1945",
+     "e": "延安整风",
+     "p": "毛《改造我们的学习》《反对党八股》",
+     "m": "实事求是思想路线在全党确立；思想解放运动",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题二：实事求是思想路线",
+     "mzGo": "maozhongte|专题二",
+     "detail": "1941—1945 年开展整风运动，反对主观主义、宗派主义、党八股，最主要任务是反对主观主义以整顿学风。使实事求是的思想路线在全党确立起来，是一次深刻的马克思主义思想教育运动。"
+    },
+    {
+     "y": "1941.1",
+     "e": "皖南事变",
+     "p": "国民党顽固派围攻北移的新四军",
+     "m": "中共坚持有理、有利、有节的斗争，维护统一战线",
+     "s": 3,
+     "era": "新民主主义",
+     "detail": "1941 年 1 月国民党顽固派围攻北移的新四军，制造皖南事变。中共坚持有理、有利、有节的斗争，维护抗日民族统一战线。"
+    },
+    {
+     "y": "1945",
+     "e": "中共七大",
+     "p": "延安；毛《论联合政府》",
+     "m": "毛泽东思想写入党章；三大作风；政治上思想上组织上走向成熟",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题二：毛泽东思想确立为指导思想",
+     "mzGo": "maozhongte|专题二",
+     "detail": "1945 年 4—6 月在延安召开，制定党的政治路线，概括三大作风，把毛泽东思想写入党章、确立为党的指导思想。标志着党在政治上思想上组织上走向成熟。"
+    },
+    {
+     "y": "1945–1946",
+     "e": "重庆谈判",
+     "p": "毛泽东、蒋介石《双十协定》",
+     "m": "确认和平建国基本方针",
+     "s": 3,
+     "era": "新民主主义",
+     "detail": "1945 年 8 月毛泽东赴重庆与蒋介石谈判，签署《双十协定》，确认和平建国的基本方针。虽未阻止内战，但使党在政治上赢得主动。"
+    },
+    {
+     "y": "1945.8.15",
+     "e": "日本投降 / 抗战胜利",
+     "p": "—",
+     "m": "第一次取得完全胜利；台湾澎湖重归中国",
+     "s": 5,
+     "era": "新民主主义",
+     "xx": "专题一 综述：伟大抗战精神",
+     "xxGo": "xixiang|专题一",
+     "sx": "专题四 中国精神：抗战精神",
+     "sxGo": "sixiu|专题四",
+     "detail": "1945 年 8 月 15 日日本宣布无条件投降，9 月 2 日签署投降书。抗日战争是近代以来中国人民反抗外敌入侵第一次取得完全胜利的民族解放斗争，台湾、澎湖列岛重归中国主权管辖。"
+    },
+    {
+     "y": "1946–1947",
+     "e": "土地改革（五四指示 / 中国土地法大纲）",
+     "p": "—",
+     "m": "减租减息→耕者有其田；彻底反封建土地革命纲领",
+     "s": 5,
+     "era": "新民主主义",
+     "mz": "专题三：新民主主义革命的开端",
+     "mzGo": "maozhongte|专题三",
+     "sx": "专题四 中国精神：五四精神",
+     "sxGo": "sixiu|专题四",
+     "detail": "1946 年「五四指示」将减租减息改为耕者有其田；1947 年《中国土地法大纲》废除封建性及半封建性剥削的土地制度。土地改革使农民翻身，为解放战争提供了深厚的群众基础。"
+    },
+    {
+     "y": "1946.6",
+     "e": "全面内战爆发",
+     "p": "中原解放区",
+     "m": "解放战争开始",
+     "s": 3,
+     "era": "新民主主义",
+     "mz": "专题三：革命道路",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1946 年 6 月国民党军队进攻中原解放区，全面内战爆发。人民解放军经战略防御、战略进攻、战略决战三个阶段，最终取得胜利。"
+    },
+    {
+     "y": "1947.7",
+     "e": "战略进攻",
+     "p": "刘邓大军挺进大别山",
+     "m": "中国革命历史转折点",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题三：革命转折",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1947 年 7 月，刘邓大军千里跃进大别山，三路大军相互策应，揭开战略进攻序幕。标志着中国革命已经发展到一个历史的转折点。"
+    },
+    {
+     "y": "1948–1949",
+     "e": "三大战役",
+     "p": "辽沈、淮海、平津",
+     "m": "摧毁国民党主要军事力量",
+     "s": 4,
+     "era": "新民主主义",
+     "detail": "1948 年秋至 1949 年初，辽沈、淮海、平津三大战役共歼灭和改编国民党军队 150 多万，基本摧毁了国民党赖以维持反动统治的主要军事力量。"
+    },
+    {
+     "y": "1949.3",
+     "e": "七届二中全会",
+     "p": "西柏坡",
+     "m": "工作重心由乡村转到城市；两个务必",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题三：革命胜利的基本经验",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1949 年 3 月在西柏坡召开，说明党的工作重心必须由乡村转移到城市，规定全国胜利后的基本政策，提出「两个务必」。为新中国成立作了政治、思想准备。"
+    },
+    {
+     "y": "1949.4.23",
+     "e": "南京解放",
+     "p": "—",
+     "m": "国民党 22 年统治覆灭",
+     "s": 3,
+     "era": "新民主主义",
+     "detail": "1949 年 4 月 23 日人民解放军占领南京，宣告延续 22 年之久的国民党反动统治覆灭，渡江战役取得胜利。"
+    },
+    {
+     "y": "1949.6.30",
+     "e": "《论人民民主专政》",
+     "p": "毛泽东",
+     "m": "新中国国家政权的理论基础",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题三：人民民主专政",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1949 年 6 月 30 日毛泽东发表，阐明新中国国家政权的性质是工人阶级领导的、以工农联盟为基础的人民民主专政，为新中国成立作了理论准备。"
+    },
+    {
+     "y": "1949.9",
+     "e": "政协一届全会 / 《共同纲领》",
+     "p": "—",
+     "m": "起临时宪法作用；新型政党制度确立",
+     "s": 4,
+     "era": "新民主主义",
+     "mz": "专题三：建国方案",
+     "mzGo": "maozhongte|专题三",
+     "detail": "1949 年 9 月中国人民政治协商会议第一届全体会议召开，通过《共同纲领》，在一个时期内起临时宪法作用，标志中国共产党领导的多党合作和政治协商制度确立。"
+    },
+    {
+     "y": "1949.10.1",
+     "e": "中华人民共和国成立",
+     "p": "—",
+     "m": "新民主主义革命胜利；4 个彻底、2 个实现、3 个从此",
+     "s": 5,
+     "era": "社会主义革命和建设",
+     "xx": "专题一 综述：民族复兴",
+     "xxGo": "xixiang|专题一",
+     "sx": "专题五 爱国主义",
+     "sxGo": "sixiu|专题五",
+     "detail": "1949 年 10 月 1 日开国大典，中华人民共和国成立。彻底结束了旧中国半殖民地半封建社会的历史，实现了民族独立和人民解放，标志着新民主主义革命取得基本胜利，中国进入新民主主义社会。"
+    },
+    {
+     "y": "1950–1953",
+     "e": "抗美援朝",
+     "p": "彭德怀",
+     "m": "宣言书、里程碑；打破美军不可战胜神话",
+     "s": 3,
+     "era": "社会主义革命和建设",
+     "xx": "专题一 综述：抗美援朝精神",
+     "xxGo": "xixiang|专题一",
+     "sx": "专题四 中国精神",
+     "sxGo": "sixiu|专题四",
+     "detail": "1950—1953 年中国人民志愿军入朝作战，保家卫国，打败美国侵略者。是中国人民站起来后屹立于世界东方的宣言书，是中华民族走向伟大复兴的重要里程碑。"
+    },
+    {
+     "y": "1950–1952",
+     "e": "土地改革",
+     "p": "《中华人民共和国土地改革法》",
+     "m": "彻底废除封建土地制度",
+     "s": 3,
+     "era": "社会主义革命和建设",
+     "detail": "1950—1952 年在新解放区进行土地改革，颁布《中华人民共和国土地改革法》，彻底废除封建土地制度，农民分得土地，巩固了新生政权。"
+    },
+    {
+     "y": "1950–1951",
+     "e": "镇压反革命",
+     "p": "镇压反革命运动，巩固新生政权",
+     "m": "扫除国民党残余势力，稳定社会秩序",
+     "s": 3,
+     "era": "社会主义革命和建设",
+     "detail": "1950—1951 年开展镇压反革命运动，扫除国民党残余势力，稳定社会秩序，巩固新生人民政权。"
+    },
+    {
+     "y": "1951–1952",
+     "e": "三反五反",
+     "p": "党政机关反贪污、反浪费、反官僚主义；城市反行贿偷税等",
+     "m": "打退资产阶级进攻，巩固工人阶级领导地位",
+     "s": 3,
+     "era": "社会主义革命和建设",
+     "detail": "1951—1952 年在党政机关开展反贪污、反浪费、反官僚主义的「三反」运动，在城市开展反行贿、反偷税漏税等「五反」运动，打退资产阶级进攻，巩固工人阶级领导地位。"
+    },
+    {
+     "y": "1953",
+     "e": "过渡时期总路线",
+     "p": "毛泽东「一化三改」",
+     "m": "指明向社会主义过渡方向",
+     "s": 4,
+     "era": "社会主义革命和建设",
+     "mz": "专题四 社会主义改造理论：一化三改",
+     "mzGo": "maozhongte|专题四",
+     "detail": "1953 年提出「一化三改」：逐步实现国家的社会主义工业化，逐步实现对农业、手工业和资本主义工商业的社会主义改造。指明了向社会主义过渡的方向。"
+    },
+    {
+     "y": "1953–1957",
+     "e": "一五计划",
+     "p": "156 项重点工程",
+     "m": "社会主义工业化起步",
+     "s": 3,
+     "era": "社会主义革命和建设",
+     "mz": "专题四：社会主义工业化",
+     "mzGo": "maozhongte|专题四",
+     "detail": "1953—1957 年实施第一个五年计划，集中主要力量发展重工业，156 项重点工程。社会主义工业化起步，为建立独立完整的工业体系奠定基础。"
+    },
+    {
+     "y": "1954",
+     "e": "第一届全国人大 / 宪法",
+     "p": "—",
+     "m": "第一部社会主义类型宪法；人大制度确立",
+     "s": 4,
+     "era": "社会主义革命和建设",
+     "sx": "专题十六 维护宪法权威",
+     "sxGo": "sixiu|专题十六",
+     "detail": "1954 年召开第一届全国人民代表大会，通过《中华人民共和国宪法》，这是我国第一部社会主义类型的宪法，人民代表大会制度正式确立。"
+    },
+    {
+     "y": "1956",
+     "e": "三大改造完成",
+     "p": "—",
+     "m": "社会主义制度确立；中国历史上最深刻最伟大的社会变革",
+     "s": 5,
+     "era": "社会主义革命和建设",
+     "mz": "专题四：社会主义改造理论",
+     "mzGo": "maozhongte|专题四",
+     "detail": "1953—1956 年对农业、手工业、资本主义工商业进行社会主义改造，1956 年底基本完成。标志着社会主义基本制度在中国确立，是中国历史上最深刻最伟大的社会变革。"
+    },
+    {
+     "y": "1956",
+     "e": "《论十大关系》 / 中共八大",
+     "p": "毛泽东",
+     "m": "探索建设道路的开端；正确分析主要矛盾",
+     "s": 4,
+     "era": "社会主义革命和建设",
+     "mz": "专题五 社会主义建设道路初步探索",
+     "mzGo": "maozhongte|专题五",
+     "detail": "1956 年毛泽东发表《论十大关系》，提出以苏为鉴、独立自主探索，是党探索中国社会主义建设道路的良好开端；同年中共八大正确分析国内主要矛盾，提出集中力量发展社会生产力。"
+    },
+    {
+     "y": "1957",
+     "e": "《关于正确处理人民内部矛盾的问题》",
+     "p": "毛泽东",
+     "m": "两类矛盾学说",
+     "s": 4,
+     "era": "社会主义革命和建设",
+     "mz": "专题五：两类矛盾学说",
+     "mzGo": "maozhongte|专题五",
+     "detail": "1957 年毛泽东发表，提出社会主义社会存在敌我矛盾和人民内部矛盾两类性质不同的矛盾，人民内部矛盾用民主方法解决。是社会主义建设道路探索的重要成果。"
+    },
+    {
+     "y": "1957",
+     "e": "整风运动与反右派斗争",
+     "p": "整风后转为反右派斗争",
+     "m": "反右派斗争严重扩大化，留下深刻教训",
+     "s": 3,
+     "era": "社会主义革命和建设",
+     "detail": "1957 年开展整风运动，后转为反右派斗争。反右派斗争严重扩大化，把一批知识分子、爱国人士错划为右派，留下深刻教训。"
+    },
+    {
+     "y": "1958",
+     "e": "大跃进、人民公社化",
+     "p": "—",
+     "m": "「左」倾错误，经济建设受挫",
+     "s": 3,
+     "era": "社会主义革命和建设",
+     "detail": "1958 年发动「大跃进」和人民公社化运动，「左」倾错误严重泛滥，脱离实际、违背经济规律，使国民经济遭受严重困难，留下深刻教训。"
+    },
+    {
+     "y": "1961",
+     "e": "八字方针",
+     "p": "八届九中全会决定实行「调整、巩固、充实、提高」",
+     "m": "国民经济进入调整期，逐步克服困难",
+     "s": 3,
+     "era": "社会主义革命和建设",
+     "detail": "1961 年中共八届九中全会决定对国民经济实行「调整、巩固、充实、提高」的八字方针，国民经济进入调整期，逐步克服困难。"
+    },
+    {
+     "y": "1962",
+     "e": "七千人大会",
+     "p": "总结「大跃进」以来的经验教训",
+     "m": "发扬党内民主和自我批评，统一全党认识",
+     "s": 3,
+     "era": "社会主义革命和建设",
+     "detail": "1962 年召开扩大的中央工作会议（七千人大会），初步总结「大跃进」以来的经验教训，发扬党内民主和自我批评，统一全党认识。"
+    },
+    {
+     "y": "1966–1976",
+     "e": "文化大革命",
+     "p": "—",
+     "m": "严重曲折，留下深刻教训",
+     "s": 3,
+     "era": "社会主义革命和建设",
+     "detail": "1966—1976 年「文化大革命」十年内乱，使党、国家和人民遭到新中国成立以来最严重的挫折和损失，留下深刻教训。"
+    },
+    {
+     "y": "1978–1984",
+     "e": "农村改革",
+     "p": "家庭联产承包责任制推行",
+     "m": "农村改革率先突破，调动农民积极性",
+     "s": 3,
+     "era": "改革开放",
+     "detail": "1978—1984 年农村改革率先突破，家庭联产承包责任制推行，废除人民公社体制，调动农民积极性，农村面貌发生显著变化。"
+    },
+    {
+     "y": "1978.12",
+     "e": "十一届三中全会",
+     "p": "邓小平《解放思想，实事求是，团结一致向前看》",
+     "m": "伟大转折；重新确立三条路线；改革开放开端",
+     "s": 5,
+     "era": "改革开放",
+     "mz": "专题六/七：邓小平理论",
+     "mzGo": "maozhongte|专题六",
+     "xx": "专题六 全面深化改革开放",
+     "xxGo": "xixiang|专题六",
+     "detail": "1978 年 12 月召开，否定「两个凡是」，停止使用「以阶级斗争为纲」，把工作重心转移到社会主义现代化建设上来，提出改革开放。重新确立思想、政治、组织路线，是新中国成立以来党的历史上具有深远意义的伟大转折，开启改革开放和社会主义现代化建设新时期。"
+    },
+    {
+     "y": "1980",
+     "e": "兴办经济特区",
+     "p": "深圳、珠海、汕头、厦门设立经济特区",
+     "m": "对外开放迈出关键一步",
+     "s": 3,
+     "era": "改革开放",
+     "detail": "1980 年深圳、珠海、汕头、厦门设立经济特区，成为对外开放的窗口和试验田，对外开放迈出关键一步。"
+    },
+    {
+     "y": "1981.6",
+     "e": "《关于建国以来党的若干历史问题的决议》",
+     "p": "十一届六中全会",
+     "m": "科学评价毛泽东；活的灵魂",
+     "s": 4,
+     "era": "改革开放",
+     "mz": "专题二：毛泽东思想活的灵魂",
+     "mzGo": "maozhongte|专题二",
+     "detail": "1981 年党的十一届六中全会通过，彻底否定「文化大革命」，科学评价毛泽东和毛泽东思想的历史地位，概括毛泽东思想活的灵魂（实事求是、群众路线、独立自主），标志指导思想上拨乱反正胜利完成。"
+    },
+    {
+     "y": "1982",
+     "e": "中共十二大",
+     "p": "邓小平「建设有中国特色的社会主义」",
+     "m": "改革开放全面展开",
+     "s": 4,
+     "era": "改革开放",
+     "mz": "专题六：中国特色社会主义命题",
+     "mzGo": "maozhongte|专题六",
+     "detail": "1982 年召开，邓小平提出「走自己的道路，建设有中国特色的社会主义」，从此「中国特色社会主义」成为党的全部理论和实践创新的主题。"
+    },
+    {
+     "y": "1987",
+     "e": "中共十三大",
+     "p": "—",
+     "m": "社会主义初级阶段理论；基本路线",
+     "s": 4,
+     "era": "改革开放",
+     "mz": "专题七 邓小平理论：社会主义初级阶段",
+     "mzGo": "maozhongte|专题七",
+     "detail": "1987 年召开，系统阐述社会主义初级阶段理论，提出党在社会主义初级阶段的基本路线，明确「一个中心、两个基本点」。"
+    },
+    {
+     "y": "1992",
+     "e": "南方谈话 / 中共十四大",
+     "p": "邓小平",
+     "m": "三个有利于；社会主义市场经济体制目标",
+     "s": 5,
+     "era": "改革开放",
+     "mz": "专题七：社会主义本质与市场经济",
+     "mzGo": "maozhongte|专题七",
+     "detail": "1992 年邓小平南方谈话，提出「三个有利于」标准、社会主义本质论、计划和市场都是经济手段；同年中共十四大明确社会主义市场经济体制改革目标，改革开放进入新阶段。"
+    },
+    {
+     "y": "1997",
+     "e": "中共十五大",
+     "p": "—",
+     "m": "邓小平理论写入党章",
+     "s": 4,
+     "era": "改革开放",
+     "mz": "专题六：邓小平理论写入党章",
+     "mzGo": "maozhongte|专题六",
+     "detail": "1997 年召开，把邓小平理论确立为党的指导思想并写入党章，提出社会主义初级阶段的基本纲领。"
+    },
+    {
+     "y": "2001",
+     "e": "加入世界贸易组织",
+     "p": "中国正式加入 WTO",
+     "m": "对外开放进入新阶段，深度融入世界经济",
+     "s": 3,
+     "era": "改革开放",
+     "detail": "2001 年中国正式加入世界贸易组织（WTO），对外开放进入新阶段，深度融入世界经济体系。"
+    },
+    {
+     "y": "2002",
+     "e": "中共十六大",
+     "p": "—",
+     "m": "三个代表；全面建设小康社会",
+     "s": 4,
+     "era": "改革开放",
+     "mz": "专题六：三个代表重要思想",
+     "mzGo": "maozhongte|专题六",
+     "detail": "2002 年召开，把「三个代表」重要思想确立为党的指导思想并写入党章，提出全面建设小康社会的奋斗目标。"
+    },
+    {
+     "y": "2007",
+     "e": "中共十七大",
+     "p": "—",
+     "m": "科学发展观写入党章",
+     "s": 3,
+     "era": "改革开放",
+     "mz": "专题六：科学发展观",
+     "mzGo": "maozhongte|专题六",
+     "detail": "2007 年召开，将科学发展观写入党章，提出实现全面建设小康社会奋斗目标的新要求。"
+    },
+    {
+     "y": "2012",
+     "e": "中共十八大",
+     "p": "—",
+     "m": "中国特色社会主义进入新时代",
+     "s": 4,
+     "era": "改革开放",
+     "xx": "专题一 综述：中国特色社会主义进入新时代",
+     "xxGo": "xixiang|专题一",
+     "detail": "2012 年召开，中国特色社会主义进入新时代，提出全面建成小康社会目标，确立科学发展观为党的指导思想。"
+    },
+    {
+     "y": "2017",
+     "e": "中共十九大",
+     "p": "习近平",
+     "m": "习思想写入党章；主要矛盾转化",
+     "s": 5,
+     "era": "新时代",
+     "xx": "专题二 中国特色社会主义：主要矛盾转化",
+     "xxGo": "xixiang|专题二",
+     "detail": "2017 年召开，把习近平新时代中国特色社会主义思想写入党章、确立为党必须长期坚持的指导思想；明确我国社会主要矛盾转化为人民日益增长的美好生活需要和不平衡不充分的发展之间的矛盾。"
+    },
+    {
+     "y": "2021",
+     "e": "建党百年 / 全面小康",
+     "p": "—",
+     "m": "实现第一个百年奋斗目标",
+     "s": 4,
+     "era": "新时代",
+     "xx": "专题三 中国式现代化：全面小康",
+     "xxGo": "xixiang|专题三",
+     "detail": "2021 年庆祝中国共产党成立 100 周年，宣告全面建成小康社会、实现第一个百年奋斗目标，历史性地解决了绝对贫困问题。"
+    },
+    {
+     "y": "2022",
+     "e": "中共二十大",
+     "p": "—",
+     "m": "以中国式现代化全面推进中华民族伟大复兴",
+     "s": 5,
+     "era": "新时代",
+     "xx": "专题三 中国式现代化",
+     "xxGo": "xixiang|专题三",
+     "sx": "专题十三 坚持全面依法治国",
+     "sxGo": "sixiu|专题十三",
+     "detail": "2022 年召开，总结新时代十年伟大变革，提出以中国式现代化全面推进中华民族伟大复兴，明确中心任务。"
+    },
+    {
+     "y": "2024",
+     "e": "二十届三中全会",
+     "p": "—",
+     "m": "进一步全面深化改革、推进中国式现代化",
+     "s": 3,
+     "era": "新时代",
+     "xx": "专题六 全面深化改革开放",
+     "xxGo": "xixiang|专题六",
+     "detail": "2024 年 7 月召开，审议通过《中共中央关于进一步全面深化改革、推进中国式现代化的决定》，对进一步全面深化改革作出系统部署。"
+    }
+   ],
+   "sections": [
+    {
+     "no": "专题一",
+     "title": "资本帝国主义对中国的侵略与近代中国社会的半殖民地半封建性质",
+     "points": [
+      {
+       "t": "西方列强侵略手段：军事侵略（首先和主要）、政治控制、经济掠夺、文化渗透。",
+       "s": 3
+      },
+      {
+       "t": "1842《南京条约》＝中国近代史上第一个不平等条约；鸦片战争是中国近代史的起点。",
+       "s": 4
+      },
+      {
+       "t": "半殖民地：丧失完全独立地位（领土、主权不完整），但名义上仍是独立国家。",
+       "s": 3
+      },
+      {
+       "t": "半封建：出现资本主义生产关系，但民族资本主义不可能成为社会经济主要形式。",
+       "s": 3
+      },
+      {
+       "t": "近代社会主要矛盾：帝国主义与中华民族的矛盾（最主要）＋封建主义与人民大众的矛盾。",
+       "s": 4
+      },
+      {
+       "t": "两大历史任务：争得民族独立、人民解放；实现国家富强、人民幸福（前者为后者扫清障碍）。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题二",
+     "title": "反抗外国武装侵略的斗争与民族意识的觉醒",
+     "points": [
+      {
+       "t": "三元里人民抗英斗争＝中国近代史上中国人民第一次大规模的反侵略武装斗争。",
+       "s": 3
+      },
+      {
+       "t": "列强未能瓜分中国的根本原因：中华民族不屈不挠的反侵略斗争。",
+       "s": 3
+      },
+      {
+       "t": "反侵略战争失败的根本原因：社会制度腐败；另一重要原因：经济技术落后。",
+       "s": 4
+      },
+      {
+       "t": "林则徐＝近代中国睁眼看世界第一人，编《四洲志》。",
+       "s": 3
+      },
+      {
+       "t": "魏源《海国图志》，提出「师夷长技以制夷」。",
+       "s": 3
+      },
+      {
+       "t": "甲午战争后民族意识普遍觉醒：严复《救亡决论》喊出「救亡」，译《天演论》「物竞天择，适者生存」。",
+       "s": 4
+      },
+      {
+       "t": "1894 年孙中山创兴中会，喊出「振兴中华」。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题三",
+     "title": "不同社会力量对国家出路的早期探索",
+     "points": [
+      {
+       "t": "太平天国《天朝田亩制度》＝纲领性文件，否定封建土地所有制，但具空想性质。",
+       "s": 4
+      },
+      {
+       "t": "《资政新篇》＝中国近代史上第一个比较系统的发展资本主义的方案（提倡雇佣劳动制）。",
+       "s": 4
+      },
+      {
+       "t": "太平天国＝中国旧式农民战争的最高峰；失败的根本原因：农民阶级的局限性。",
+       "s": 4
+      },
+      {
+       "t": "洋务运动指导思想「中学为体，西学为用」；＝中国近代化的开端。",
+       "s": 3
+      },
+      {
+       "t": "洋务运动失败标志：甲午战争北洋海军全军覆没；失败原因：封建性、依赖性、腐朽性。",
+       "s": 4
+      },
+      {
+       "t": "维新派与守旧派论战＝资产阶级思想与封建主义思想在中国的第一次正面交锋。",
+       "s": 4
+      },
+      {
+       "t": "戊戌维新是资产阶级性质的政治改良运动（未触及封建制度根本），失败证明自上而下改良道路走不通。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题四",
+     "title": "辛亥革命",
+     "points": [
+      {
+       "t": "同盟会＝近代中国第一个领导资产阶级革命的全国性政党；成立标志中国资产阶级民主革命进入新阶段。",
+       "s": 4
+      },
+      {
+       "t": "三民主义：民族（驱除鞑虏，恢复中华）、民权（创立民国）、民生（平均地权）。",
+       "s": 4
+      },
+      {
+       "t": "1911.10.10 武昌起义；1912.1.1 孙中山就职临时大总统；1912.2.12 清帝退位。",
+       "s": 4
+      },
+      {
+       "t": "《中华民国临时约法》＝中国历史上第一部具有资产阶级共和国宪法性质的法典。",
+       "s": 4
+      },
+      {
+       "t": "辛亥革命意义：推翻清王朝、结束两千多年封建君主专制、建立亚洲第一个共和制国家，民主共和观念深入人心。",
+       "s": 5
+      },
+      {
+       "t": "失败根本原因：半殖民地半封建中国，资本主义建国方案行不通；主观原因：革命派软弱性妥协性（无彻底纲领、未发动群众、无坚强政党）。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "专题五",
+     "title": "新文化运动与五四运动",
+     "points": [
+      {
+       "t": "1915.9 陈独秀办《青年杂志》，发刊词《敬告青年》＝新文化运动兴起的标志；阵地＝《新青年》＋北京大学。",
+       "s": 4
+      },
+      {
+       "t": "新文化运动口号：民主和科学；五四前是资产阶级民主主义性质的思想解放运动。",
+       "s": 4
+      },
+      {
+       "t": "五四导火线：巴黎和会中国外交失败；口号「外争主权，内除国贼」。",
+       "s": 4
+      },
+      {
+       "t": "6 月 5 日后主力由学生转向工人，中心由北京转到上海，工人阶级以独立姿态登上历史舞台。",
+       "s": 4
+      },
+      {
+       "t": "五四运动＝旧民主主义革命走向新民主主义革命的转折点，是中国新民主主义革命的开端。",
+       "s": 5
+      },
+      {
+       "t": "五四运动实现了中国人民和中华民族自鸦片战争以来第一次全面觉醒。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题六",
+     "title": "中国共产党成立",
+     "points": [
+      {
+       "t": "李大钊 1919《我的马克思主义观》＝马克思主义在中国进入比较系统传播阶段的标志。",
+       "s": 4
+      },
+      {
+       "t": "1920.2「南陈北李，相约建党」；1920.8 上海建立中国工人阶级政党最早的组织。",
+       "s": 3
+      },
+      {
+       "t": "1921.7.23 中共一大上海开幕，最后一天转嘉兴南湖游船（红船精神）。",
+       "s": 4
+      },
+      {
+       "t": "中共一大制定第一个纲领，把实现共产主义作为最高理想；但未制定民主革命纲领。",
+       "s": 4
+      },
+      {
+       "t": "中国共产党成立意义：开天辟地的大事变，中国革命面貌焕然一新；中国人民有了主心骨。",
+       "s": 5
+      },
+      {
+       "t": "注意：党成立时没有提出马克思主义中国化命题，也未立即找到农村包围城市道路。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题七",
+     "title": "第一次国共合作与大革命",
+     "points": [
+      {
+       "t": "1922 中共二大第一次提出反帝反封建民主革命纲领，并通过统一战线决议案。",
+       "s": 4
+      },
+      {
+       "t": "1923 中共三大决定共产党员以个人身份加入国民党。",
+       "s": 3
+      },
+      {
+       "t": "1924.1 国民党一大＝第一次国共合作正式形成的标志；新三民主义＝合作政治基础。",
+       "s": 4
+      },
+      {
+       "t": "大革命起点：1925.5 五卅运动；1926.7 北伐战争开始。",
+       "s": 3
+      },
+      {
+       "t": "大革命失败标志：四一二、七一五反革命政变。",
+       "s": 4
+      },
+      {
+       "t": "失败教训：必须坚持武装斗争、解决农民土地问题、保持党在统一战线中的独立性。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题八",
+     "title": "中国革命的新道路",
+     "points": [
+      {
+       "t": "八七会议（1927.8.7）确定土地革命和武装起义方针；毛泽东提「枪杆子里出政权」。",
+       "s": 4
+      },
+      {
+       "t": "南昌起义（1927.8.1）＝独立领导革命战争、创建人民军队和武装夺取政权的开端。",
+       "s": 4
+      },
+      {
+       "t": "秋收起义后三湾改编＝从组织上确立党对军队的领导；井冈山＝农村包围城市道路的开辟。",
+       "s": 4
+      },
+      {
+       "t": "四篇著作《中国的红色政权为什么能够存在？》《井冈山的斗争》《星星之火，可以燎原》《反对本本主义》＝新道路的理论说明。",
+       "s": 4
+      },
+      {
+       "t": "古田会议（1929.12）确立思想建党、政治建军原则。",
+       "s": 3
+      },
+      {
+       "t": "《井冈山土地法》＝第一部土地法；《兴国土地法》将「没收一切土地」改为「没收一切公共土地及地主阶级的土地」。",
+       "s": 4
+      },
+      {
+       "t": "遵义会议（1935.1）＝生死攸关的转折点，党独立自主解决自身问题，开始走向成熟。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "专题九",
+     "title": "中华民族的抗日战争",
+     "points": [
+      {
+       "t": "九一八事变（1931）＝中国人民抗日战争的起点，揭开世界反法西斯战争序幕。",
+       "s": 4
+      },
+      {
+       "t": "西安事变（1936.12.12）和平解决＝时局转换的枢纽，十年内战基本结束。",
+       "s": 4
+      },
+      {
+       "t": "1937.9 国共合作宣言发表、蒋介石谈话＝抗日民族统一战线正式形成。",
+       "s": 4
+      },
+      {
+       "t": "洛川会议（1937.8）制定抗日救国十大纲领＝全面抗战路线正式形成。",
+       "s": 3
+      },
+      {
+       "t": "《论持久战》：批驳亡国论、速胜论；三阶段：战略防御、战略相持、战略反攻。",
+       "s": 4
+      },
+      {
+       "t": "抗战胜利（1945.8.15）：近代以来反抗外敌入侵第一次取得完全胜利；台湾澎湖重归中国。",
+       "s": 5
+      },
+      {
+       "t": "中共七大（1945）毛泽东思想写入党章；三大作风；标志党在政治上思想上组织上走向成熟。",
+       "s": 4
+      },
+      {
+       "t": "游击战争的战略地位（阶段视角）：战略防御阶段，敌后游击战是辅助的；战略相持阶段，敌后游击战争成为主要的抗日作战方式。",
+       "s": 5
+      },
+      {
+       "t": "百团大战是战略相持阶段八路军在华北地区发动的规模最大、持续时间最长的一次带战略性进攻的战役。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题十",
+     "title": "抗日战争时期中国共产党的自身建设",
+     "points": [
+      {
+       "t": "六届六中全会（1938）毛泽东提出「马克思主义中国化」命题。",
+       "s": 4
+      },
+      {
+       "t": "《〈共产党人〉发刊词》《中国革命和中国共产党》《新民主主义论》＝毛泽东思想趋于成熟的标志。",
+       "s": 5
+      },
+      {
+       "t": "延安整风：反对主观主义（主要任务）、宗派主义、党八股；使实事求是思想路线在全党确立。",
+       "s": 4
+      },
+      {
+       "t": "整风胜利结束标志：六届七中全会通过《关于若干历史问题的决议》。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十一",
+     "title": "为建立新中国而奋斗",
+     "points": [
+      {
+       "t": "重庆谈判《双十协定》＝确认和平建国基本方针。",
+       "s": 3
+      },
+      {
+       "t": "全面内战爆发：1946.6 国民党进攻中原解放区。",
+       "s": 3
+      },
+      {
+       "t": "解放战争三阶段：战略防御、战略进攻、战略决战（不同于抗战三阶段）。",
+       "s": 4
+      },
+      {
+       "t": "土地政策：1946「五四指示」将减租减息改为耕者有其田；1947《中国土地法大纲》＝彻底反封建的土地革命纲领。",
+       "s": 5
+      },
+      {
+       "t": "三大战役（辽沈、淮海、平津）基本摧毁国民党主要军事力量；1949.4.23 南京解放。",
+       "s": 4
+      },
+      {
+       "t": "七届二中全会（1949.3）：党的工作重心由乡村转移到城市；提出「两个务必」。",
+       "s": 4
+      },
+      {
+       "t": "中国革命三大法宝：统一战线、武装斗争、党的建设。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "专题十二",
+     "title": "中华人民共和国的成立与中国社会主义建设道路的探索",
+     "points": [
+      {
+       "t": "新中国成立意义：4 个「彻底」、2 个「实现」、3 个「从此」。",
+       "s": 5
+      },
+      {
+       "t": "抗美援朝＝中国人民站起来后屹立于世界东方的宣言书。",
+       "s": 3
+      },
+      {
+       "t": "过渡时期总路线「一化三改」；1956 三大改造完成＝社会主义制度确立。",
+       "s": 5
+      },
+      {
+       "t": "中共八大正确分析主要矛盾；《论十大关系》＝探索建设道路的开端。",
+       "s": 4
+      },
+      {
+       "t": "《关于正确处理人民内部矛盾的问题》＝两类矛盾学说。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题十三",
+     "title": "改革开放与中国特色社会主义的开创和发展",
+     "points": [
+      {
+       "t": "真理标准问题讨论＝改革开放的思想先导。",
+       "s": 3
+      },
+      {
+       "t": "十一届三中全会（1978.12）＝伟大转折：重新确立思想、政治、组织路线，开启改革开放新时期。",
+       "s": 5
+      },
+      {
+       "t": "《关于建国以来党的若干历史问题的决议》（1981.6）＝科学评价毛泽东，概括毛泽东思想活的灵魂（实事求是、群众路线、独立自主）。",
+       "s": 4
+      },
+      {
+       "t": "南方谈话：三个有利于、社会主义本质、计划和市场都是经济手段。",
+       "s": 4
+      },
+      {
+       "t": "1978 新时期 → 1992 新阶段 → 2012 新时代 → 十八届三中全会新局面。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题十四",
+     "title": "中国特色社会主义进入新时代",
+     "points": [
+      {
+       "t": "党的十八大以来，中国特色社会主义进入新时代。",
+       "s": 4
+      },
+      {
+       "t": "十八届三中全会＝改革开放新局面（使市场在资源配置中起决定性作用）。",
+       "s": 3
+      },
+      {
+       "t": "十九大（2017）习近平新时代中国特色社会主义思想写入党章；主要矛盾转化为人民日益增长的美好生活需要和不平衡不充分的发展之间的矛盾。",
+       "s": 5
+      },
+      {
+       "t": "二十大（2022）提出以中国式现代化全面推进中华民族伟大复兴。",
+       "s": 5
+      },
+      {
+       "t": "二十届三中全会＝进一步全面深化改革、推进中国式现代化。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题四·补",
+     "title": "辛亥革命后的政局与旧民主主义革命的终结（补充）",
+     "points": [
+      {
+       "t": "1911 年 5 月清政府宣布「铁路国有」，激起四川保路运动，成为武昌起义的导火线。",
+       "s": 4
+      },
+      {
+       "t": "1912 年 3 月袁世凯在北京就任临时大总统，窃取辛亥革命果实，北洋军阀统治开始。",
+       "s": 4
+      },
+      {
+       "t": "1913 年宋教仁被刺，孙中山发动二次革命讨袁，失败。",
+       "s": 4
+      },
+      {
+       "t": "1915 年 5 月袁世凯接受日本「二十一条」大部分条款；12 月称帝，护国运动爆发；1916 年 3 月被迫取消帝制，6 月病死。",
+       "s": 4
+      },
+      {
+       "t": "1917 年 7 月张勋拥溥仪复辟，12 天即败。",
+       "s": 3
+      },
+      {
+       "t": "1917—1918 年孙中山发动护法运动，反对段祺瑞毁弃《临时约法》，失败后认识到「南与北如一丘之貉」。",
+       "s": 4
+      },
+      {
+       "t": "袁世凯死后北洋军阀分裂为皖系、直系、奉系，军阀割据混战。",
+       "s": 3
+      },
+      {
+       "t": "结论：资产阶级革命派无力领导中国革命走向胜利，旧民主主义革命陷入绝境，为新民主主义革命准备了条件。",
+       "s": 5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sixiu",
+   "name": "思想道德与法治",
+   "short": "思修",
+   "color": "#0f766e",
+   "sections": [
+    {
+     "no": "专题一",
+     "title": "思想道德和法律(德治和法治)的相互关系",
+     "points": [
+      {
+       "t": "共同点：都是调节思想行为、协调人际关系、维护社会秩序的重要手段，都是上层建筑的重要组成部分、共同服务于一定经济基础，都是重要社会规范、都具有必须遵守的性质。",
+       "s": 4
+      },
+      {
+       "t": "调节领域不同：道德调节的领域比法律广，道德反对和谴责的行为不一定是法律禁止和制裁的，但法律禁止和制裁的行为通常是道德反对和谴责的。",
+       "s": 5
+      },
+      {
+       "t": "调节方式不同：道德是非强制性的规范，靠社会舆论、传统习俗和内心信念维持；法律靠国家强制力保证实施。",
+       "s": 5
+      },
+      {
+       "t": "地位不同：法治是治国理政的基本方式，德治是治国理政的重要方式（二者是治国理政不可或缺的两种方式）。",
+       "s": 4
+      },
+      {
+       "t": "思想道德建设为法治建设提供思想指引和价值基础，要强化道德对法治的支撑作用、重视道德的教化作用。",
+       "s": 5
+      },
+      {
+       "t": "法治建设为思想道德建设提供制度支撑和法律保障，把道德要求贯彻到法治建设中、以法治承载道德理念，并运用法治手段解决道德领域突出问题。",
+       "s": 5
+      },
+      {
+       "t": "“法安天下，德润人心”：既要发挥思想道德的引领和教化作用，又要发挥法律的规范和强制作用。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题二",
+     "title": "人生观",
+     "points": [
+      {
+       "t": "个人与社会的关系问题是认识和处理人生问题的重要着眼点和出发点；二者是对立统一关系，相互依存、相互制约、相互促进。",
+       "s": 4
+      },
+      {
+       "t": "个人与社会的关系最根本的是个人利益与社会利益的关系；社会利益不是个人利益的简单相加，而是所有人利益的有机统一，是个人利益得以实现的前提和基础。",
+       "s": 5
+      },
+      {
+       "t": "人生观主要内容：人生目的（回答人为什么活着，是人生观的核心，决定人生道路、人生态度、人生价值选择）、人生态度（回答人应当如何活着）、人生价值（回答什么样的人生才有价值）。",
+       "s": 5
+      },
+      {
+       "t": "人生价值内含自我价值与社会价值：自我价值是个体生存和发展的必要条件、为社会创造更大价值的前提；社会价值是社会存在和发展的重要条件，没有社会价值，自我价值就无法存在。",
+       "s": 5
+      },
+      {
+       "t": "世界观决定人生观，人生观对世界观的巩固、发展起重要作用，价值观对人生观的形成发展有重要引导作用。",
+       "s": 3
+      },
+      {
+       "t": "评价人生价值的根本尺度是看实践活动是否符合社会发展客观规律、是否促进历史进步（历史标准）；今天最重要的是看是否用劳动和聪明才智为国家和社会真诚奉献、为人民群众尽心尽力服务。",
+       "s": 5
+      },
+      {
+       "t": "评价方法：既要看贡献大小也要看尽力程度，既要尊重物质贡献也要尊重精神贡献，既要注重社会贡献也要注重自身完善。",
+       "s": 4
+      },
+      {
+       "t": "高尚的人生追求是“服务人民、奉献社会”；积极进取的人生态度是认真、务实、乐观、进取；实现人生价值的必由之路是社会实践。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题三",
+     "title": "理想信念",
+     "points": [
+      {
+       "t": "理想信念是人类特有的精神现象，是人的精神世界的核心，是精神上的“钙”，是人生发展的内在动力。",
+       "s": 5
+      },
+      {
+       "t": "理想的特征是超越性、实践性、时代性；信念的特征是执着性、支撑性、多样性。",
+       "s": 5
+      },
+      {
+       "t": "理想与信念相互依存：理想是信念所指的对象，信念是理想实现的保障（理想指引方向，信念决定成败）；离开理想信念无从产生，离开信念理想寸步难行。",
+       "s": 4
+      },
+      {
+       "t": "信仰是最高层次的信念，具有最大的统摄力；高层次的信念决定低层次的信念，低层次的信念服从于高层次的信念。",
+       "s": 4
+      },
+      {
+       "t": "理想信念的作用：昭示奋斗目标（思想和行为的定向器）、催生前进动力、提供精神支柱（精神生活领域“安身立命”的根本）、提高精神境界。",
+       "s": 4
+      },
+      {
+       "t": "理想与现实的矛盾属于“应然”和“实然”的矛盾：二者既对立又统一，在一定条件下理想可以转化为未来的现实，脱离现实谈理想就会成为空想。",
+       "s": 5
+      },
+      {
+       "t": "实现理想的条件与途径：理想的实现具有长期性、艰巨性、曲折性；艰苦奋斗是重要条件；实践是通往理想彼岸的桥梁。",
+       "s": 4
+      },
+      {
+       "t": "个人理想与社会理想的关系实质是个人与社会关系在理想层面的反映：个人理想以社会理想为指引，社会理想是个人理想的汇聚和升华；社会理想最根本、最重要，个人理想从属于社会理想。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "专题四",
+     "title": "中国精神",
+     "points": [
+      {
+       "t": "中华民族崇尚精神传统的三个表现：对物质生活与精神生活相互关系的独到理解（重精神）、对理想的不懈追求（重理想）、对品格养成的重视（重道德、重人格）。",
+       "s": 4
+      },
+      {
+       "t": "中国精神内涵的生动展现（四个伟大）：伟大创造精神、伟大奋斗精神、伟大团结精神、伟大梦想精神。",
+       "s": 5
+      },
+      {
+       "t": "伟大建党精神是中国共产党的精神之源，中国共产党人的精神谱系极大丰富了中国精神的内涵。",
+       "s": 4
+      },
+      {
+       "t": "中国精神是兴国强国之魂，是凝聚中国力量的精神纽带、激发创新创造的精神动力、推进复兴伟业的精神支柱。",
+       "s": 4
+      },
+      {
+       "t": "中国精神的重要组成部分：以爱国主义为核心的民族精神和以改革创新为核心的时代精神紧密关联，都是中华民族赖以生存和发展的精神支撑。",
+       "s": 5
+      },
+      {
+       "t": "民族精神是在长期共同生活和社会实践中形成的、为本民族大多数成员所认同的价值取向、思维方式、道德规范、精神气质的总和；爱国主义是中华民族最重要的精神财富。",
+       "s": 4
+      },
+      {
+       "t": "时代精神是新的历史条件下形成发展的、体现民族特质并顺应时代潮流的思想观念、价值取向、精神风貌和社会风尚的总和；改革开放以来形成以改革创新为核心的时代精神。",
+       "s": 4
+      },
+      {
+       "t": "改革创新精神体现为：突破陈规、大胆探索、敢于创造的思想观念；不甘落后、奋勇争先、追求进步的责任感和使命感；坚忍不拔、自强不息、锐意进取的精神状态。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题五",
+     "title": "爱国主义",
+     "points": [
+      {
+       "t": "爱国主义体现人们对祖国的深厚感情，揭示个人对祖国的依存关系，是归属感、认同感、尊严感与荣誉感的统一，是调节个人与祖国之间关系的道德要求、政治原则和法律规范。",
+       "s": 5
+      },
+      {
+       "t": "基本内涵的四个方面：爱祖国的大好河山、爱自己的骨肉同胞、爱祖国的灿烂文化、爱自己的国家。",
+       "s": 4
+      },
+      {
+       "t": "骨肉同胞之爱反映了对民族利益共同体的自觉认同，是检验一个人对祖国忠诚程度的试金石。",
+       "s": 4
+      },
+      {
+       "t": "文化是一个国家、一个民族的灵魂，是民族得以延续的精神基因，是涵养民族心理、民族个性、民族精神的摇篮，是民族凝聚力的重要基础。",
+       "s": 4
+      },
+      {
+       "t": "新时代爱国主义的鲜明主题：实现中华民族伟大复兴的中国梦。",
+       "s": 5
+      },
+      {
+       "t": "当代中国爱国主义的本质：坚持爱国和爱党、爱社会主义高度统一，这是当代中国爱国主义精神最重要的体现。",
+       "s": 5
+      },
+      {
+       "t": "弘扬新时代爱国主义的着力点：维护祖国统一和民族团结；四个方面要求为爱国爱党爱社会主义相统一、维护祖国统一和民族团结、尊重和传承中华民族历史文化、坚持立足中国又面向世界。",
+       "s": 4
+      },
+      {
+       "t": "爱国主义是具体的、现实的，不同历史条件下有不同内涵和特点；《爱国主义教育法》规定新时代爱国主义教育的鲜明主题是全面建成社会主义现代化强国、实现中华民族伟大复兴。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题六",
+     "title": "社会主义核心价值观",
+     "points": [
+      {
+       "t": "核心价值观是一定社会形态、社会性质的集中体现，在思想观念体系中处于主导地位；对一个民族、一个国家来说，最持久、最深层的力量是全社会共同认可的核心价值观。",
+       "s": 4
+      },
+      {
+       "t": "国家层面富强、民主、文明、和谐，回答“建设什么样的国家”，揭示当代中国经济社会发展的价值目标。",
+       "s": 4
+      },
+      {
+       "t": "社会层面自由、平等、公正、法治，回答“建设什么样的社会”，揭示社会主义社会发展的价值取向。",
+       "s": 4
+      },
+      {
+       "t": "公民层面爱国、敬业、诚信、友善，回答“培育什么样的公民”，是每个公民都应当遵守的价值规范。",
+       "s": 4
+      },
+      {
+       "t": "具体定位：富强是物质基础；公正是人类社会进步的标尺、社会主义制度的本质要求；法治是人类政治文明的重要成果、现代社会的主要特征；爱国是最深沉最持久的情感。",
+       "s": 3
+      },
+      {
+       "t": "社会主义核心价值观把国家、社会、公民的价值要求融为一体：体现社会主义本质要求、继承中华优秀传统文化、吸收世界文明有益成果、体现时代精神。",
+       "s": 4
+      },
+      {
+       "t": "重要性：是当代中国精神的集中体现，是中国特色社会主义道路、理论、制度、文化的价值表达，凝结全体人民共同的价值追求，是当代中国发展进步的精神指引（价值遵循、提高文化软实力的迫切要求、社会团结奋进的“最大公约数”）。",
+       "s": 4
+      },
+      {
+       "t": "显著特征是先进性、人民性、真实性：先进性集中体现为它是社会主义所坚持和追求的价值理念；人民性是根本特性（人民至上）；真实性是与以往价值观的重要区别。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "专题七",
+     "title": "道德观",
+     "points": [
+      {
+       "t": "道德起源：首要前提、第一个历史前提是劳动；客观条件是社会关系；主观条件是人的自我意识（思想认识前提）。",
+       "s": 4
+      },
+      {
+       "t": "道德的本质：是反映社会经济关系的特殊意识形态，是社会利益关系的特殊调节方式，是一种实践精神、在本质上是知行合一的。",
+       "s": 5
+      },
+      {
+       "t": "作为特殊意识形态，道德的产生发展变化归根结底源于社会经济关系，在阶级社会不可避免具有阶级性又有共同之处（普遍性），并具有相对独立性（历史继承性和能动反作用）。",
+       "s": 4
+      },
+      {
+       "t": "道德与法律规范、政治规范的不同之处：道德是非强制性的规范，用善恶标准评价，依靠社会舆论、传统习俗、内心信念维持。",
+       "s": 5
+      },
+      {
+       "t": "道德最基本的功能是认识功能（行为前的选择）、规范功能（行为中的规范）、调节功能（行为后的指导纠正），此外还有激励、导向、教育等功能。",
+       "s": 5
+      },
+      {
+       "t": "道德评价是道德调节的主要形式。",
+       "s": 4
+      },
+      {
+       "t": "道德发挥作用的性质由道德所反映的经济基础、代表的阶级利益决定（并非所有道德都起积极推动作用）；“道德万能论”和“道德无用论”都是错误的。",
+       "s": 4
+      },
+      {
+       "t": "道德对巩固特定社会的经济基础和上层建筑具有不可替代的作用，是提高精神境界、促进自我完善、推动全面发展的内在动力。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题八",
+     "title": "社会主义道德",
+     "points": [
+      {
+       "t": "社会主义道德的先进性：是社会主义经济基础的反映，是对人类优秀道德资源的批判继承和创新发展，克服了以往阶级社会道德的片面性和局限性。",
+       "s": 4
+      },
+      {
+       "t": "为人民服务是社会主义道德的核心，是社会主义道德观的集中体现；以为人民服务为核心是社会主义道德区别和优越于其他社会形态道德的显著标志。",
+       "s": 5
+      },
+      {
+       "t": "集体主义是社会主义道德的原则；我国国家利益、社会整体利益和个人利益根本上的一致性，使集体主义应当而且能够在全社会范围贯彻实施。",
+       "s": 5
+      },
+      {
+       "t": "集体主义内涵：强调国家利益、社会整体利益和个人利益的辩证统一；强调国家利益、社会整体利益高于个人利益（最终也维护个人根本利益和长远利益，只有不牺牲个人利益就不能保全国家和社会利益时才要求牺牲）；重视和保障个人的正当利益。",
+       "s": 5
+      },
+      {
+       "t": "集体主义三个层次：无私奉献、一心为公是最高层次；先公后私、先人后己是较高觉悟者能达到的要求；顾全大局、遵纪守法、热爱祖国、诚实劳动、以正当合法手段保障个人利益是对公民最基本的道德要求。",
+       "s": 5
+      },
+      {
+       "t": "社会主义道德建设要吸收借鉴优秀道德成果：传承中华传统美德、发扬中国革命道德、借鉴人类文明优秀道德成果。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题九",
+     "title": "中华传统美德与中国革命道德",
+     "points": [
+      {
+       "t": "中华传统美德是人类文明发展的重要精神财富，是中华文化的精髓，是社会主义道德建设的源头活水。",
+       "s": 4
+      },
+      {
+       "t": "中华传统美德基本精神：重视整体利益、强调责任奉献（“公义胜私欲”是根本要求，义利之辨的核心和本质是公私之辨）；推崇仁爱原则、注重以和为贵；注重人伦关系、重视道德义务；追求精神境界、向往理想人格；强调道德修养、注重道德践履。",
+       "s": 5
+      },
+      {
+       "t": "对待中国传统道德要反对“复古论”和“虚无论”两种错误思潮，加强对中华传统美德的挖掘阐发、用其滋养社会主义道德建设。",
+       "s": 4
+      },
+      {
+       "t": "中国革命道德内容：为实现社会主义和共产主义理想而奋斗（理想信念是革命道德的灵魂）、全心全意为人民服务（贯穿始终的一根红线）、始终把革命利益放在首位、树立社会新风和建立新型人际关系、修身自律保持节操。",
+       "s": 5
+      },
+      {
+       "t": "中国革命道德的当代价值（四个有利于）：有利于加强和巩固社会主义和共产主义的理想信念、培育和践行社会主义核心价值观、引导人们树立正确的道德观、培育良好的社会道德风尚。",
+       "s": 4
+      },
+      {
+       "t": "中华传统美德是中国革命道德的渊源之一；中国革命道德继承精华、摒弃糟粕，是中国优良传统道德的延续和发展，是超越中华传统美德时代局限而形成的崭新道德。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题十",
+     "title": "公民道德建设",
+     "points": [
+      {
+       "t": "《新时代公民道德建设实施纲要》以社会公德、职业道德、家庭美德、个人品德建设为着力点：社会上做好公民、工作中做好建设者、家庭里做好成员、日常生活中养成好品行。",
+       "s": 4
+      },
+      {
+       "t": "当代公共生活的特征：活动范围的广泛性、活动内容的开放性、交往对象的复杂性、活动方式的多样性。",
+       "s": 3
+      },
+      {
+       "t": "公共生活需要公共秩序：有序的公共生活是社会生产活动的重要基础，是提高社会成员生活质量的基本保障，是社会文明的重要标志。",
+       "s": 3
+      },
+      {
+       "t": "社会公德内容：文明礼貌（调整和规范人际关系的行为准则）、助人为乐、爱护公物、保护环境、遵纪守法（全体公民都必须遵循的基本行为准则，维护公共生活秩序的重要条件）。",
+       "s": 4
+      },
+      {
+       "t": "网络道德：网络交往仍然是人与人的现实交往、网络生活也是人的真实生活，网络道德要求是社会公德在网络空间的运用和扩展；要求正确使用网络工具、加强网络文明自律、营造良好网络道德环境。",
+       "s": 4
+      },
+      {
+       "t": "职业道德内容：爱岗敬业、诚实守信、办事公道、热情服务、奉献社会。",
+       "s": 4
+      },
+      {
+       "t": "家庭美德以尊老爱幼、男女平等、夫妻和睦、勤俭持家、邻里互助为主要内容。",
+       "s": 4
+      },
+      {
+       "t": "注重家庭、家教、家风：家庭教育最重要的是品德教育、是如何做人的教育；家风是社会风气的重要组成部分。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题十一",
+     "title": "锤炼个人品德",
+     "points": [
+      {
+       "t": "个人品德在社会道德建设中具有基础性作用，社会公德、职业道德、家庭美德建设最终都要落实到个人品德的养成上。",
+       "s": 5
+      },
+      {
+       "t": "个人品德是通过社会道德教育和个人自觉的道德修养所形成的稳定的心理状态和行为习惯，集中体现道德认知、道德情感、道德意志、道德信念和道德行为的内在统一。",
+       "s": 4
+      },
+      {
+       "t": "涵养高尚道德品格：形成正确的道德认知和道德判断（最根本的是坚持以唯物史观基本原理看待道德）、激发正向的道德认同和道德情感、强化坚定的道德意志和道德信念。",
+       "s": 4
+      },
+      {
+       "t": "在道德认知向道德行为转化的过程中，道德意志和道德信念是关键环节。",
+       "s": 4
+      },
+      {
+       "t": "道德修养的正确方法：学思并重、省察克治、慎独自律、知行合一、积善成德。",
+       "s": 5
+      },
+      {
+       "t": "道德修养重在践行的途径：向道德模范学习（榜样的力量是无穷的）、参与志愿服务活动、积极引领社会风尚（知荣辱、讲正气、作奉献、促和谐）。",
+       "s": 4
+      },
+      {
+       "t": "志愿服务是培育和弘扬社会主义核心价值观的重要载体，志愿服务精神是奉献、友爱、互助、进步。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十二",
+     "title": "社会主义法律",
+     "points": [
+      {
+       "t": "法律是由国家制定或认可并由国家强制力保证实施的、反映由特定社会物质生活条件所决定的统治阶级意志的规范体系。",
+       "s": 5
+      },
+      {
+       "t": "国家强制性是法律规范区别于其他社会规范的一个重要特征。",
+       "s": 5
+      },
+      {
+       "t": "法律所体现的统治阶级意志不是其意志的全部，仅是上升为国家意志的那部分，统治阶级意志还体现在国家政策、统治阶级的道德等形式中。",
+       "s": 4
+      },
+      {
+       "t": "物质资料生产方式既是决定社会面貌、性质和发展的根本因素，也是决定法律本质、内容和发展方向的根本因素。",
+       "s": 4
+      },
+      {
+       "t": "我国社会主义法律的本质特征：体现党的主张和人民意志的统一（阶级性与人民性的统一）、具有科学性和先进性、是中国特色社会主义建设的重要保障。",
+       "s": 4
+      },
+      {
+       "t": "法律运行四环节：法律制定（起始性和关键性环节，全国人大立法程序为法律案的提出、审议、表决、公布）、法律执行（行政执法是法律实施和实现的重要环节）、法律适用（司法）、法律遵守（守法是法律实施和实现的基本途径）。",
+       "s": 5
+      },
+      {
+       "t": "行政执法基本原则是合法性、合理性、信赖保护、效率；司法的基本要求是正确、合法、合理、及时。",
+       "s": 3
+      },
+      {
+       "t": "法律制定是国家对权利和义务（即社会利益和负担）进行的权威性分配；执法、司法、守法把法律规范转化为法律实践、把法定权利义务转化为现实权利义务。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题十三",
+     "title": "坚持全面依法治国",
+     "points": [
+      {
+       "t": "法律是治国之重器，法治是治国理政的基本方式；全面依法治国是关系党执政兴国、人民幸福安康、党和国家长治久安的重大战略问题，必须摆在全局性、战略性、基础性、保障性位置，发挥法治固根本、稳预期、利长远的作用。",
+       "s": 4
+      },
+      {
+       "t": "全面依法治国的根本遵循是习近平法治思想，其主要内容集中体现为“十二个坚持”。",
+       "s": 5
+      },
+      {
+       "t": "“十二个坚持”中的定位（一）：党的领导是根本保证、以人民为中心是根本立场、中国特色社会主义法治道路是唯一正确道路、依宪治国依宪执政是首要任务、在法治轨道上全面建设社会主义现代化国家是时代使命。",
+       "s": 5
+      },
+      {
+       "t": "“十二个坚持”中的定位（二）：建设中国特色社会主义法治体系是总抓手；依法治国、依法执政、依法行政共同推进和法治国家、法治政府、法治社会一体建设是工作布局；科学立法、严格执法、公正司法、全民守法是重要环节。",
+       "s": 5
+      },
+      {
+       "t": "“十二个坚持”中的定位（三）：统筹推进国内法治和涉外法治是迫切任务；建设德才兼备的高素质法治工作队伍是基础性保障；抓住领导干部这个“关键少数”是关键所在；坚持依法治国和依规治党有机统一是内在要求。",
+       "s": 5
+      },
+      {
+       "t": "习近平法治思想深刻回答了新时代为什么实行、怎样实行全面依法治国，是马克思主义法治理论中国化时代化的最新成果、对党领导法治建设经验的科学总结、法治轨道上全面建设社会主义现代化国家的根本遵循、引领法治中国建设高质量发展的思想旗帜。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题十四",
+     "title": "全面依法治国的唯一正确道路",
+     "points": [
+      {
+       "t": "中国特色社会主义法治道路本质上是中国特色社会主义道路在法治领域的具体体现。",
+       "s": 4
+      },
+      {
+       "t": "核心要义：坚持党的领导，坚持中国特色社会主义制度，贯彻中国特色社会主义法治理论。",
+       "s": 5
+      },
+      {
+       "t": "为什么必须走这条道路：是历史的必然结论，是由我国社会主义国家性质所决定的，是立足我国基本国情的必然选择。",
+       "s": 4
+      },
+      {
+       "t": "必须遵循的五项原则：坚持中国共产党的领导、坚持人民主体地位、坚持法律面前人人平等、坚持依法治国和以德治国相结合、坚持从中国实际出发。",
+       "s": 5
+      },
+      {
+       "t": "党的领导是中国特色社会主义最本质的特征、社会主义法治最根本的保证；党的领导是中国特色社会主义法治之魂，是我们的法治同西方资本主义国家法治最大的区别。",
+       "s": 5
+      },
+      {
+       "t": "坚持党的领导体现在党领导立法、保证执法、支持司法、带头守法上。",
+       "s": 4
+      },
+      {
+       "t": "坚持人民主体地位：全面依法治国最广泛、最深厚的基础是人民；坚持法律面前人人平等，平等是社会主义法律的基本属性、社会主义法治的基本要求，一方面要求违法必究，另一方面要求非歧视。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题十五",
+     "title": "全面依法治国的宏伟目标",
+     "points": [
+      {
+       "t": "全面依法治国的宏伟目标是建设法治中国，总抓手是建设中国特色社会主义法治体系。",
+       "s": 5
+      },
+      {
+       "t": "法治体系五个子体系定位：完备的法律规范体系是前提和制度基础；高效的法治实施体系是重点；严密的法治监督体系是宪法法律有效实施的重要保障、加强权力运行制约监督的迫切要求；有力的法治保障体系是重要依托；完善的党内法规体系是本质要求和重要内容。",
+       "s": 5
+      },
+      {
+       "t": "依法治国、依法执政、依法行政是一个有机整体，关键在于党要坚持依法执政、各级政府要坚持依法行政。",
+       "s": 4
+      },
+      {
+       "t": "法治国家是法治建设的目标，法治政府是建设法治国家的重点，法治社会是构筑法治国家的基础；法治政府建设是重点任务和主体工程，法治社会建设是基础工程。",
+       "s": 5
+      },
+      {
+       "t": "科学立法是前提（立法是法治的龙头环节），严格执法是关键，公正司法是重点，全民守法是基础。",
+       "s": 5
+      },
+      {
+       "t": "公正是法治的生命线、司法活动最高的价值追求，公正司法是维护社会公平正义的最后一道防线。",
+       "s": 5
+      },
+      {
+       "t": "法律的权威源自人民的内心拥护和真诚信仰，要增强全民法治观念、使法治成为社会共识和基本原则。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "专题十六",
+     "title": "维护宪法权威",
+     "points": [
+      {
+       "t": "全面依法治国的首要任务是坚持依宪治国、依宪执政：坚持依法治国首先要坚持依宪治国，坚持依法执政首先要坚持依宪执政，法治权威能不能树立起来首先要看宪法有没有权威。",
+       "s": 5
+      },
+      {
+       "t": "宪法是国家的根本法，是党和人民意志的集中体现，是国家各项制度和法律法规的总依据，在中国特色社会主义法律体系中居于核心地位，具有最高的法律地位、法律权威、法律效力，具有根本性、全局性、稳定性、长期性。",
+       "s": 5
+      },
+      {
+       "t": "宪法是实现国家认同、凝聚社会共识、促进个人发展的基本准则，是维系一个国家、一个民族凝聚力的根本纽带。",
+       "s": 4
+      },
+      {
+       "t": "我国宪法的基本原则：党的领导原则、人民当家作主原则、尊重和保障人权原则、社会主义法治原则、民主集中制原则。",
+       "s": 4
+      },
+      {
+       "t": "加强宪法实施：坚持依宪执政（宪法是党长期执政的根本法律依据，党要带头尊崇和执行宪法）、坚持依法立法（任何立法均不得同宪法相抵触，维护社会主义法制的统一）、坚持严格执法。",
+       "s": 4
+      },
+      {
+       "t": "完善宪法监督：健全人大工作机制、宪法解释机制、备案审查机制、合宪性审查机制。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十七",
+     "title": "培养社会主义法治思维",
+     "points": [
+      {
+       "t": "法治思维是一种特殊的高级法律意识，四层含义是正当性思维、规范思维、逻辑思维、科学思维。",
+       "s": 4
+      },
+      {
+       "t": "法治思维的基本内容：法律至上、权力制约、公平正义、权利保障、程序正当。",
+       "s": 5
+      },
+      {
+       "t": "法律至上指在所有社会规范中法律地位最高、效力最广、强制力最大，尤其指宪法至上；具体表现为法律的普遍适用、优先适用和不可违反。",
+       "s": 4
+      },
+      {
+       "t": "权力制约指国家机关的权力必须受法律规制和约束，要求权力由法定（法无授权不可为）、有权必有责、用权受监督、违法受追究。",
+       "s": 4
+      },
+      {
+       "t": "公平正义包括权利公平、机会公平、规则公平、救济公平；机会公平包括起点公平、发展公平、代际公平。",
+       "s": 4
+      },
+      {
+       "t": "权利保障包括宪法保障（前提和基础）、立法保障（重要条件）、行政保障（关键环节）、司法保障（最后防线）。",
+       "s": 5
+      },
+      {
+       "t": "程序正当表现在程序的合法性、中立性、参与性、公开性、时限性等方面。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "专题十八",
+     "title": "法律权利与法律义务",
+     "points": [
+      {
+       "t": "马克思主义权利观与其他权利观的根本区别：强调社会的物质生活条件对权利的制约和决定作用。",
+       "s": 4
+      },
+      {
+       "t": "法律权利的特征：内容、种类和实现程度受社会物质生活条件制约；因社会制度和国家法律不同而存在差异；受法律维护保障、具有不可侵犯性，由国家强制力保障其实现是法律权利区别于其他权利的根本所在；必须依法行使。",
+       "s": 5
+      },
+      {
+       "t": "法律义务的特点是历史的、源于现实需要、必须依法设定、可能发生变化；履行方式包括作为和不作为。",
+       "s": 4
+      },
+      {
+       "t": "法律权利与法律义务不可分割、相互依存：每个人既是权利主体又是义务主体；权利实现以相应义务履行为条件，义务设定和履行以权利行使为根据；有些权利义务具有复合性（一个行为可同时是权利行为和义务行为）。",
+       "s": 5
+      },
+      {
+       "t": "宪法法律规定的权利类型：政治权利（选举权、表达权、民主管理权、监督权）、宗教信仰自由、人身权利、财产权利、社会经济权利、文化教育权利。",
+       "s": 4
+      },
+      {
+       "t": "人身权利包括生命健康权（生命权是人最基本、最原始的权利，享有生命权是享有其他各项权利的前提）、人身自由权、人格尊严权、住宅安全权、通信自由权。",
+       "s": 4
+      },
+      {
+       "t": "劳动权是公民赖以生存的基础、行使其他权利的物质保障；休息权是劳动权存在和发展的基础；受教育权是公民在教育领域享有的基本权利。",
+       "s": 4
+      },
+      {
+       "t": "依法行使法律权利：目的正当性（符合立法意图和精神、不得破坏公序良俗）、必要限度、方式法定性、正当程序；依法履行义务包括维护国家统一和民族团结、遵守宪法和法律、维护祖国安全荣誉和利益、依法服兵役、依法纳税。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "时政·法律",
+     "title": "2026 重要法律",
+     "points": [
+      {
+       "t": "《中华人民共和国生态环境法典》2026 年 3 月 12 日由十四届全国人大四次会议通过，2026 年 8 月 15 日施行；是我国继民法典之后第二部以「法典」命名的法律，也是全球首部以「生态环境」命名的法典。",
+       "s": 5
+      },
+      {
+       "t": "《中华人民共和国民族团结进步促进法》2026 年 3 月 12 日通过，2026 年 7 月 1 日施行；是新时代处理民族事务、开展民族工作的基本法律，30 多年来第一部设置序言的法律。",
+       "s": 5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "xiao1000",
+   "name": "肖1000 · 命题规律",
+   "short": "肖1000",
+   "color": "#0C5C8F",
+   "sections": [
+    {
+     "no": "结构",
+     "title": "题型结构与达标线",
+     "points": [
+      {
+       "t": "三种题型：单项选择（四选一）、多项选择（四选二至四，少选/多选/错选均不得分）、材料分析题。",
+       "s": 4
+      },
+      {
+       "t": "分册页数分配：马原 1–64、毛中特 65–81、习思想 82–112、史纲 117–153、思修 157 起。",
+       "s": 4
+      },
+      {
+       "t": "肖秀荣给出的达标线：单选正确率 70% 以上、多选 30%–55%，才算这一章过关（前言原话）。",
+       "s": 5
+      },
+      {
+       "t": "用法：第一轮读一章《精讲精练》再做对应一章；第二轮按学科刷；冲刺只重做错题。",
+       "s": 3
+      },
+      {
+       "t": "今年修订率约 40%，新增二十届四中全会、抗战胜利 80 周年等时政题，材料分析题全面更新。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "设问",
+     "title": "设问套路：帽子题是主角",
+     "points": [
+      {
+       "t": "最高频设问词：根本、本质、核心、关键、首要、前提、基础、标志、实质 —— 题干出现 107 次。",
+       "s": 5
+      },
+      {
+       "t": "材料型设问：体现、说明、表明、意味着 —— 21 次，要求先读材料再定位原理。",
+       "s": 4
+      },
+      {
+       "t": "原因型设问：原因、因为、由于、根源 —— 26 次。",
+       "s": 4
+      },
+      {
+       "t": "反向型设问：错误、不正确、不属于 —— 题干少，但解析里判「错误」853 次，说明核心动作是逐项判对错。",
+       "s": 5
+      },
+      {
+       "t": "结论：1000 题练的是「判断选项对错」，不是背答案；所以要把「帽子」记准，而不是记题目。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "干扰",
+     "title": "干扰项五类（解析册归纳）",
+     "points": [
+      {
+       "t": "绝对化：含「唯一、一切、所有、完全、彻底」的多为错，解析点名「绝对化」76 次。",
+       "s": 5
+      },
+      {
+       "t": "与题意不符：说法本身对，但答非所问，解析常写「C 错误且与题意不符」。",
+       "s": 5
+      },
+      {
+       "t": "混淆/偷换概念：把相近概念对调，如物质与意识、社会存在与社会意识。",
+       "s": 4
+      },
+      {
+       "t": "扩大或缩小范围：把局部结论说成普遍规律，或把普遍原理限定到局部。",
+       "s": 4
+      },
+      {
+       "t": "张冠李戴：把某人的观点安到另一人头上，或把不同时期的结论混用。",
+       "s": 4
+      },
+      {
+       "t": "解析有「点拨」板块 217 次，专门归纳「一类典型干扰项设置方式」并列「类似的错误提法还有……」，这份清单就是易错点。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "马原",
+     "title": "马原高频（词频证据）",
+     "points": [
+      {
+       "t": "词频：资本 575、价值 449、实践 216、矛盾 210、认识 195、商品 178、物质 154、规律 110。",
+       "s": 5
+      },
+      {
+       "t": "三大主场：政治经济学（商品/价值/资本/剩余价值）＋唯物论 ＋辩证法与认识论。",
+       "s": 5
+      },
+      {
+       "t": "对应本站「马原」29 个专题，政经部分集中在专题二十至二十五。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "毛中特",
+     "title": "毛中特高频（词频证据）",
+     "points": [
+      {
+       "t": "词频：新民主主义 79、统一战线 50、社会主义改造 42、实事求是 19、党的建设 18、武装斗争 13。",
+       "s": 5
+      },
+      {
+       "t": "核心：新民主主义革命理论 ＋ 三大法宝 ＋ 社会主义改造理论。",
+       "s": 5
+      },
+      {
+       "t": "对应本站「毛中特」7 个专题。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "习思想",
+     "title": "习思想高频（词频证据）",
+     "points": [
+      {
+       "t": "词频：改革开放 59、中国式现代化 44、全面依法治国 28、高质量发展 23、国家安全 21、文化自信 19、以人民为中心 19、生态文明 17、全过程人民民主 15、一国两制 11、共同富裕 10。",
+       "s": 5
+      },
+      {
+       "t": "四条主线最密：中国式现代化、高质量发展、全面依法治国、国家安全。",
+       "s": 5
+      },
+      {
+       "t": "对应本站「习思想」20 个专题。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "史纲",
+     "title": "史纲高频（词频证据）",
+     "points": [
+      {
+       "t": "词频：新民主主义革命 42、抗日战争 37、洋务 32、五四运动 30、十一届三中全会 10、长征 9、鸦片战争 8、辛亥革命 7。",
+       "s": 5
+      },
+      {
+       "t": "结论：抗战、新民主主义革命、洋务与五四最密；时间线仍是骨架，顺序错了全错。",
+       "s": 4
+      },
+      {
+       "t": "对应本站「史纲」14 个专题 ＋ 72 节点时间线。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "思修",
+     "title": "思修高频（词频证据）",
+     "points": [
+      {
+       "t": "词频：法律 194、法治 193、道德 159、权利 104、义务 31、宪法 30、爱国主义 26、核心价值观 23。",
+       "s": 5
+      },
+      {
+       "t": "结论：法治部分（法律＋法治＋权利＋义务＋宪法）权重明显高于道德部分。",
+       "s": 5
+      },
+      {
+       "t": "对应本站「思修」18 个专题，法治在专题十二至十八。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "策略",
+     "title": "按题型的答题动作",
+     "points": [
+      {
+       "t": "单选：先认「帽子」，再用绝对化词排除；四个选项都要读，正确项常在「最不像标准答案」的表述里。",
+       "s": 4
+      },
+      {
+       "t": "多选：逐项判对错，四项都要过一遍；少选、多选、错选均不得分，所以要选全且只选对的。",
+       "s": 5
+      },
+      {
+       "t": "材料分析：先定学科考点，再按「原理＋材料」结构写；1000 题的材料题就是练框架。",
+       "s": 4
+      },
+      {
+       "t": "错题本只记「错的那个选项为什么错」——干扰项会变形重复出现，记错的比记对的更省时间。",
+       "s": 5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "maozi",
+   "name": "帽子总结 · 根本/本质/前提",
+   "short": "帽子",
+   "color": "#6D28D9",
+   "sections": [
+    {
+     "no": "根本",
+     "title": "马原关于「根本」的提法（29 条）",
+     "points": [
+      {
+       "t": "物质的根本属性是运动。",
+       "s": 5
+      },
+      {
+       "t": "实践是正确发挥人的主观能动性的根本途径。",
+       "s": 5
+      },
+      {
+       "t": "对立统一规律是事物发展的根本规律。",
+       "s": 5
+      },
+      {
+       "t": "唯物辩证法是认识世界和改造世界的根本方法。",
+       "s": 4
+      },
+      {
+       "t": "认识世界的根本目的在于改造世界。",
+       "s": 4
+      },
+      {
+       "t": "矛盾分析方法是认识事物的根本方法。",
+       "s": 4
+      },
+      {
+       "t": "实践关系是主体和客体相互作用关系中最根本的关系。",
+       "s": 5
+      },
+      {
+       "t": "主观和客观的矛盾是认识和实践活动中的基本矛盾，也是根本动力。",
+       "s": 4
+      },
+      {
+       "t": "认识必然和争取自由，是人类认识世界和改造世界的根本目标。",
+       "s": 4
+      },
+      {
+       "t": "一切从实际出发是马克思主义认识论的根本要求。",
+       "s": 4
+      },
+      {
+       "t": "主张社会存在决定社会意识还是相反，是唯物史观与唯心史观的根本分野。",
+       "s": 5
+      },
+      {
+       "t": "人的发展中最根本的是人的自由程度的提高。",
+       "s": 3
+      },
+      {
+       "t": "生产力与生产关系矛盾运动的规律性，从根本上规定了社会形态更替的客观必然性。",
+       "s": 4
+      },
+      {
+       "t": "社会基本矛盾是历史发展的根本动力。",
+       "s": 5
+      },
+      {
+       "t": "生产力是社会进步的根本内容，是衡量社会进步的根本尺度。",
+       "s": 5
+      },
+      {
+       "t": "生产力与旧生产关系、经济基础与旧上层建筑的矛盾冲突，是革命爆发的根本原因。",
+       "s": 4
+      },
+      {
+       "t": "群众路线是我们党的生命线和根本工作路线。",
+       "s": 4
+      },
+      {
+       "t": "具体劳动能否还原为抽象劳动，根本上取决于私人劳动和社会劳动能否实现统一。",
+       "s": 3
+      },
+      {
+       "t": "资本主义生产的根本目的是追求剩余价值。",
+       "s": 5
+      },
+      {
+       "t": "资本主义经济危机爆发的根本原因是资本主义的基本矛盾。",
+       "s": 5
+      },
+      {
+       "t": "资本主义国家职能以服务于资本主义制度和资产阶级利益为根本内容。",
+       "s": 4
+      },
+      {
+       "t": "资本主义国家的社会管理职能，从根本上说服务于其政治统治职能。",
+       "s": 4
+      },
+      {
+       "t": "科学技术的进步和生产力的发展，为经济全球化提供了根本推动力。",
+       "s": 4
+      },
+      {
+       "t": "科学技术革命和生产力的发展，是资本主义发生变化的根本推动力量。",
+       "s": 4
+      },
+      {
+       "t": "二战后资本主义的变化，从根本上说是人类社会发展一般规律和资本主义经济规律作用的结果。",
+       "s": 4
+      },
+      {
+       "t": "无产阶级革命的根本问题是国家政权问题。",
+       "s": 5
+      },
+      {
+       "t": "社会主义社会生产的根本目的是满足全体社会成员的需要。",
+       "s": 4
+      },
+      {
+       "t": "是否坚持科学的立场观点方法，是能否正确预见未来的基本前提，也是马克思主义与空想社会主义的根本区别。",
+       "s": 4
+      },
+      {
+       "t": "实现人的自由而全面的发展，是马克思主义追求的根本价值目标，也是共产主义社会的根本特征。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "本质",
+     "title": "马原关于「本质」与「实质」的提法（23 条）",
+     "points": [
+      {
+       "t": "人民性是马克思主义的本质属性。",
+       "s": 5
+      },
+      {
+       "t": "物质最本质的规定是客观实在性。",
+       "s": 5
+      },
+      {
+       "t": "辩证否定的实质是「扬弃」，既批判又继承。",
+       "s": 5
+      },
+      {
+       "t": "意识的本质：人脑这种特殊物质的机能和属性，是客观世界的主观映象。",
+       "s": 5
+      },
+      {
+       "t": "实践的本质：人类能动地改造世界的社会性的物质活动。",
+       "s": 5
+      },
+      {
+       "t": "认识的本质：主体在实践基础上对客体的能动反映。",
+       "s": 5
+      },
+      {
+       "t": "真理的本质属性：客观性。",
+       "s": 5
+      },
+      {
+       "t": "（哲学）价值的本质：主体和客体之间的意义关系。",
+       "s": 4
+      },
+      {
+       "t": "人类社会的本质：生产实践基础上形成的物质体系。",
+       "s": 4
+      },
+      {
+       "t": "人的本质：一切社会关系的总和。",
+       "s": 5
+      },
+      {
+       "t": "人的本质属性：社会属性。",
+       "s": 4
+      },
+      {
+       "t": "资本主义工资的本质：劳动力的价值或价格。",
+       "s": 5
+      },
+      {
+       "t": "（政经）价值的本质：生产者之间一定的社会关系。",
+       "s": 4
+      },
+      {
+       "t": "货币的本质：固定充当一般等价物的商品。",
+       "s": 4
+      },
+      {
+       "t": "资本的本质：能够带来剩余价值的价值。",
+       "s": 5
+      },
+      {
+       "t": "剩余价值的实质：雇佣工人创造并被资本家无偿占有的超过劳动力价值的部分。",
+       "s": 5
+      },
+      {
+       "t": "资本积累的本质：用无偿占有的剩余价值扩大资本规模，加强对工人的剥削。",
+       "s": 4
+      },
+      {
+       "t": "资本主义政治制度的本质：资产阶级政治统治和社会管理的手段与方式。",
+       "s": 4
+      },
+      {
+       "t": "资本主义意识形态的本质：资产阶级经济和政治的集中反映。",
+       "s": 4
+      },
+      {
+       "t": "国家垄断资本主义的实质：私人垄断资本利用国家机器为其发展服务。",
+       "s": 4
+      },
+      {
+       "t": "资本主义经济危机的实质：生产相对过剩。",
+       "s": 5
+      },
+      {
+       "t": "二战后资本主义变化的实质：人类社会发展一般规律和资本主义经济规律作用的结果。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "前提",
+     "title": "马原关于「前提」与「基础」的提法（11 条）",
+     "points": [
+      {
+       "t": "对哲学基本问题的回答，是解决其他一切哲学问题的前提和基础。",
+       "s": 4
+      },
+      {
+       "t": "实践是客观规律性与主观能动性统一的基础；尊重客观规律是正确发挥主观能动性的前提。",
+       "s": 5
+      },
+      {
+       "t": "同一性是事物存在和发展的前提。",
+       "s": 3
+      },
+      {
+       "t": "内容是事物存在的基础。",
+       "s": 3
+      },
+      {
+       "t": "分析是综合的基础。",
+       "s": 3
+      },
+      {
+       "t": "实践是认识产生和发展的基础、动力、目的，也是真理与价值统一的基础。",
+       "s": 4
+      },
+      {
+       "t": "物质生产实践是最基本的实践活动，构成全部社会生活的基础。",
+       "s": 4
+      },
+      {
+       "t": "物质生产活动及生产方式是人类社会赖以存在和发展的基础，是人类其他一切活动的首要前提。",
+       "s": 5
+      },
+      {
+       "t": "价值尺度必须以真理为前提。",
+       "s": 4
+      },
+      {
+       "t": "正确认识世界是有效改造世界的必要前提。",
+       "s": 4
+      },
+      {
+       "t": "现实的人及其活动是社会历史存在和发展的前提。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "源泉",
+     "title": "马原关于「源泉」的提法（6 条）",
+     "points": [
+      {
+       "t": "（抽象）劳动是创造价值的唯一源泉。",
+       "s": 5
+      },
+      {
+       "t": "劳动力商品的使用价值是价值的源泉。",
+       "s": 5
+      },
+      {
+       "t": "雇佣劳动者的剩余劳动是剩余价值的唯一源泉。",
+       "s": 5
+      },
+      {
+       "t": "生产自动化条件下，雇佣工人的剩余劳动仍然是剩余价值的唯一源泉。",
+       "s": 4
+      },
+      {
+       "t": "资本积累是资本主义扩大再生产的源泉；剩余价值是资本积累的源泉。",
+       "s": 4
+      },
+      {
+       "t": "从殖民地掠夺的巨额财富，是资本主义国家资本积累、发展和增长的重要源泉。",
+       "s": 3
+      }
+     ]
+    },
+    {
+     "no": "根源",
+     "title": "马原关于「根源」的提法（12 条）",
+     "points": [
+      {
+       "t": "真理的绝对性与相对性，根源于人类认识世界能力的无限性与有限性、绝对性与相对性的矛盾。",
+       "s": 4
+      },
+      {
+       "t": "社会意识根源于社会存在。",
+       "s": 5
+      },
+      {
+       "t": "物质交往是精神交往的基础和根源。",
+       "s": 3
+      },
+      {
+       "t": "社会形态更替的统一性与多样性，根源于社会发展的必然性与人们的历史选择性相统一。",
+       "s": 4
+      },
+      {
+       "t": "一切历史冲突都根源于生产力和交往形式之间的矛盾。",
+       "s": 4
+      },
+      {
+       "t": "社会基本矛盾是其他一切社会矛盾的根源。",
+       "s": 4
+      },
+      {
+       "t": "阶级斗争根源于阶级之间物质利益的根本对立、社会经济关系的冲突。",
+       "s": 4
+      },
+      {
+       "t": "革命根源于社会基本矛盾的尖锐化。",
+       "s": 4
+      },
+      {
+       "t": "商品使用价值与价值的矛盾、具体劳动与抽象劳动的矛盾，根源于私人劳动和社会劳动的矛盾。",
+       "s": 5
+      },
+      {
+       "t": "资本积累是社会财富占有两极分化的重要原因，也是资本主义社会失业现象产生的根源。",
+       "s": 4
+      },
+      {
+       "t": "无产阶级反抗资产阶级斗争的根源，在于资本主义生产方式的基本矛盾。",
+       "s": 4
+      },
+      {
+       "t": "生产资料私有制是造成资本主义罪恶的总根源。",
+       "s": 4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shigang_sucha",
+   "name": "史纲速查 · 第一/标志/里程碑",
+   "short": "史纲速查",
+   "color": "#B45309",
+   "sections": [
+    {
+     "no": "第一",
+     "title": "中国近现代史上的「第一」（16 条）",
+     "points": [
+      {
+       "t": "中国近代史上第一个不平等条约：《南京条约》。",
+       "s": 5
+      },
+      {
+       "t": "中国近代史上中国人民第一次大规模的反侵略武装斗争：三元里人民抗英斗争。",
+       "s": 4
+      },
+      {
+       "t": "近代中国睁眼看世界的第一人：林则徐。",
+       "s": 4
+      },
+      {
+       "t": "近代中国第一个比较系统的发展资本主义的方案：《资政新篇》。",
+       "s": 4
+      },
+      {
+       "t": "资产阶级思想与封建主义思想在中国的第一次正面交锋：维新派与守旧派的论战。",
+       "s": 5
+      },
+      {
+       "t": "孙中山在檀香山组建的第一个革命团体：兴中会。",
+       "s": 3
+      },
+      {
+       "t": "近代中国第一个领导资产阶级革命的全国性政党：同盟会。",
+       "s": 5
+      },
+      {
+       "t": "中国历史上第一部具有资产阶级共和国宪法性质的法典：《中华民国临时约法》。",
+       "s": 4
+      },
+      {
+       "t": "第一次提出反帝反封建民主革命纲领的大会：中共二大。",
+       "s": 5
+      },
+      {
+       "t": "中国第一个农民协会：浙江萧山县衙前村成立的农民协会。",
+       "s": 3
+      },
+      {
+       "t": "中国工人运动的第一个高潮：1922 年 1 月香港海员罢工到 1923 年 2 月京汉铁路工人罢工。",
+       "s": 3
+      },
+      {
+       "t": "打响了武装反抗国民党反动派第一枪：南昌起义。",
+       "s": 4
+      },
+      {
+       "t": "中国历史上第一个全国性的工农民主政权：中华苏维埃共和国。",
+       "s": 4
+      },
+      {
+       "t": "全民族抗战以来中国军队主动寻歼敌人的第一次重大胜利：1937 年 9 月平型关大捷。",
+       "s": 4
+      },
+      {
+       "t": "近代以来中国人民反抗外敌入侵第一次取得完全胜利的民族解放斗争：中国人民抗日战争的胜利。",
+       "s": 5
+      },
+      {
+       "t": "马克思主义中国化时代化的第一个重大理论成果：毛泽东思想。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "起点",
+     "title": "中国近现代史上的「起点」「开端」（15 条）",
+     "points": [
+      {
+       "t": "中国近代史的起点：鸦片战争。",
+       "s": 5
+      },
+      {
+       "t": "中国近代化的开端：洋务运动。",
+       "s": 4
+      },
+      {
+       "t": "中国近代教育的开始：洋务运动。",
+       "s": 3
+      },
+      {
+       "t": "武昌起义掀起了辛亥革命的高潮，打开了清王朝统治的缺口。",
+       "s": 3
+      },
+      {
+       "t": "新民主主义革命的开端：五四运动。",
+       "s": 5
+      },
+      {
+       "t": "在中国大地上率先举起马克思主义旗帜的人物：李大钊。",
+       "s": 4
+      },
+      {
+       "t": "1925 年 5 月，以五卅运动为起点，掀起了全国范围的大革命高潮。",
+       "s": 3
+      },
+      {
+       "t": "中国共产党独立领导革命战争、创建人民军队和武装夺取政权的开端：南昌起义。",
+       "s": 5
+      },
+      {
+       "t": "中国人民革命史上具有决定意义的新起点：从进攻大城市转到向农村进军。",
+       "s": 4
+      },
+      {
+       "t": "建设无产阶级领导的新型人民军队的重要开端：三湾改编。",
+       "s": 4
+      },
+      {
+       "t": "日本变中国为其独占殖民地侵略战争的开始：九一八事变。",
+       "s": 4
+      },
+      {
+       "t": "中国人民抗日战争的起点：1931 年九一八事变。",
+       "s": 4
+      },
+      {
+       "t": "开启中国共产党独立自主解决中国革命实际问题新阶段的是：遵义会议。",
+       "s": 5
+      },
+      {
+       "t": "党探索中国社会主义建设道路的良好开端：《论十大关系》。",
+       "s": 4
+      },
+      {
+       "t": "开启我国改革开放和社会主义现代化建设新时期：党的十一届三中全会。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "标志",
+     "title": "中国近现代史上的「标志」（14 条）",
+     "points": [
+      {
+       "t": "甲午战争一役北洋海军全军覆没，标志着以「自强」「求富」为目标的洋务运动的失败。",
+       "s": 4
+      },
+      {
+       "t": "同盟会成立标志着中国资产阶级民主革命进入了一个新的阶段。",
+       "s": 4
+      },
+      {
+       "t": "领导权的变化，是区分新旧民主主义革命的根本标志。",
+       "s": 5
+      },
+      {
+       "t": "五四运动标志着中国青年成为推动中国社会变革的急先锋。",
+       "s": 3
+      },
+      {
+       "t": "国民党一大事实上确认联俄、联共、扶助农工三大政策，标志着第一次国共合作正式形成。",
+       "s": 5
+      },
+      {
+       "t": "标志着中国人民抗日救亡运动新高潮到来的事件：一二·九运动（1935 年 12 月 9 日）。",
+       "s": 4
+      },
+      {
+       "t": "六届七中全会原则通过《关于若干历史问题的决议》，标志着整风运动胜利结束。",
+       "s": 4
+      },
+      {
+       "t": "中共七大标志着党在政治上思想上组织上走向成熟。",
+       "s": 5
+      },
+      {
+       "t": "抗日战争取得完全胜利的重要标志：台湾以及澎湖列岛重归中国主权管辖。",
+       "s": 5
+      },
+      {
+       "t": "标志着中国革命重心从农村转向城市：1949 年 3 月 25 日中共中央进驻北平香山。",
+       "s": 4
+      },
+      {
+       "t": "标志着中国共产党领导的多党合作和政治协商制度确立：第一届人民政协会议召开。",
+       "s": 4
+      },
+      {
+       "t": "标志着指导思想上拨乱反正胜利完成：制定《关于建国以来党的若干历史问题的决议》。",
+       "s": 4
+      },
+      {
+       "t": "中国特色社会主义进入新时代的标志：党的十八大召开。",
+       "s": 5
+      },
+      {
+       "t": "标志着第一个百年奋斗目标圆满完成：如期全面建成小康社会。",
+       "s": 5
+      }
+     ]
+    },
+    {
+     "no": "里程碑",
+     "title": "中国近现代史上的「里程碑」「转折点」（9 条）",
+     "points": [
+      {
+       "t": "辛亥革命是中国人民为救亡图存、振兴中华而奋起革命的一座里程碑。",
+       "s": 4
+      },
+      {
+       "t": "由大革命失败到土地革命战争兴起的历史性转变：八七会议。",
+       "s": 4
+      },
+      {
+       "t": "党和人民军队建设史上的重要里程碑：古田会议决议。",
+       "s": 4
+      },
+      {
+       "t": "党的历史上一个生死攸关的转折点：遵义会议。",
+       "s": 5
+      },
+      {
+       "t": "实现了中国共产党和中国革命事业从挫折走向胜利的伟大转折：红军长征胜利。",
+       "s": 5
+      },
+      {
+       "t": "中华民族从近代以来陷入深重危机走向伟大复兴的历史转折点：抗日战争的胜利。",
+       "s": 5
+      },
+      {
+       "t": "抗美援朝战争的伟大胜利，是中华民族走向伟大复兴的重要里程碑。",
+       "s": 4
+      },
+      {
+       "t": "开启改革开放和社会主义现代化建设新时期、实现历史性伟大转折：党的十一届三中全会。",
+       "s": 5
+      },
+      {
+       "t": "新时代十年的伟大变革，在党史、新中国史、改革开放史、社会主义发展史、中华民族发展史上具有里程碑意义。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "原因",
+     "title": "中国近现代史上的「原因」（13 条）",
+     "points": [
+      {
+       "t": "列强不能实现灭亡和瓜分中国的根本原因：中华民族不屈不挠的反侵略斗争。",
+       "s": 4
+      },
+      {
+       "t": "反侵略战争失败的根本原因：社会制度的腐败。",
+       "s": 5
+      },
+      {
+       "t": "太平天国失败的根本原因：农民阶级不是新的生产力和生产关系的代表。",
+       "s": 4
+      },
+      {
+       "t": "洋务运动失败的原因：指导思想「中学为体，西学为用」，决定了必然失败的命运。",
+       "s": 4
+      },
+      {
+       "t": "戊戌维新失败的主要原因：维新派自身的局限与守旧势力的反对。",
+       "s": 4
+      },
+      {
+       "t": "预备立宪未能挽救清王朝的主要原因：清政府改革的根本目的是延续其反动统治。",
+       "s": 3
+      },
+      {
+       "t": "辛亥革命失败的根本原因：在帝国主义时代、半殖民地半封建的中国，资本主义建国方案行不通。",
+       "s": 5
+      },
+      {
+       "t": "近代以后反帝反封建斗争屡遭挫折的最重要原因：没有先进的坚强的政党作为凝聚力量的领导核心。",
+       "s": 4
+      },
+      {
+       "t": "大革命失败后中国革命能够坚持和发展的根本原因：中国共产党紧紧依靠农民，领导农民进行土地革命。",
+       "s": 4
+      },
+      {
+       "t": "20 世纪 30 年代党内屡次出现「左」倾错误的主要原因：马克思主义理论准备不足，不善于与中国实际结合。",
+       "s": 4
+      },
+      {
+       "t": "正面战场除台儿庄大捷外多数战役失败的原因：客观是日军力量优势，主观是国民党战略指导方针失误。",
+       "s": 3
+      },
+      {
+       "t": "抗日战争胜利的原因：民族精神是决定因素、党的领导是中流砥柱、全民族抗战是重要法宝、国际支持。",
+       "s": 5
+      },
+      {
+       "t": "中国革命胜利的根本原因：中国共产党的领导。",
+       "s": 5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "suji",
+   "name": "会议与运动 · 时间线详解",
+   "short": "会议运动",
+   "color": "#B45309",
+   "sections": [
+    {
+     "no": "时间线",
+     "title": "会议与运动（合并·按时期与时间顺序）",
+     "points": [
+      {
+       "div": "旧民主主义革命时期（1840—1919）"
+      },
+      {
+       "t": "【运动】太平天国运动 1851—1864：洪秀全领导，纲领《天朝田亩制度》，后期洪仁玕提出《资政新篇》。是中国旧式农民战争的最高峰；因农民阶级不是新的生产力和生产关系的代表而失败。",
+       "s": 5
+      },
+      {
+       "t": "【运动】洋务运动 19 世纪 60—90 年代：洋务派以「中学为体，西学为用」为指导，兴办近代军用和民用工业、建立新式海陆军、创办新式学堂。是中国近代化的开端；甲午战争北洋海军全军覆没，标志其失败。",
+       "s": 5
+      },
+      {
+       "t": "【运动】戊戌维新运动 1898：康有为、梁启超等维新派推动「百日维新」，仅 103 天失败。是一场资产阶级性质的政治改良运动和思想启蒙运动，证明自上而下的改良道路走不通。",
+       "s": 5
+      },
+      {
+       "t": "【运动】义和团运动 1899—1901：以农民为主体的反帝爱国运动，在粉碎帝国主义列强瓜分中国的斗争中发挥了重大历史作用。",
+       "s": 5
+      },
+      {
+       "t": "【运动】辛亥革命 1911.10：孙中山领导，武昌起义爆发，推翻清王朝。结束了两千多年的封建君主专制制度，建立亚洲第一个共和制国家，民主共和观念深入人心；但未改变半殖民地半封建性质。",
+       "s": 5
+      },
+      {
+       "t": "【运动】新文化运动 1915.9：陈独秀创办《青年杂志》（后改《新青年》），提倡民主与科学，反对旧道德旧文学。是中国历史上一次空前的思想解放运动，为马克思主义传播创造条件。",
+       "s": 5
+      },
+      {
+       "div": "新民主主义革命时期（1919—1949）"
+      },
+      {
+       "t": "【运动】五四运动 1919.5：由巴黎和会中国外交失败引发，学生发起、工人主力。是新民主主义革命的开端，工人阶级以独立姿态登上政治舞台，实现了鸦片战争以来第一次全面觉醒。",
+       "s": 5
+      },
+      {
+       "t": "【会议】中共一大 1921.7（上海→嘉兴南湖）：确定党的名称为中国共产党，制定第一个纲领，把实现共产主义作为最高理想和最终目标，决定首先集中精力组织工人。标志着中国共产党正式诞生，中国革命面貌焕然一新。",
+       "s": 5
+      },
+      {
+       "t": "【会议】中共二大 1922.7：第一次提出反帝反封建的民主革命纲领（最低纲领），并通过《关于「民主的联合战线」的议决案》，标志着党的统一战线政策正式提出。",
+       "s": 5
+      },
+      {
+       "t": "【会议】中共三大 1923.6：决定共产党员以个人身份加入国民党，以实现国共合作，为第一次国共合作作了组织准备。",
+       "s": 5
+      },
+      {
+       "t": "【会议】国民党一大 1924.1：确认共产党员以个人身份加入国民党的原则，对三民主义作出新解释，事实上确立联俄、联共、扶助农工三大政策。标志着第一次国共合作正式形成。",
+       "s": 4
+      },
+      {
+       "t": "【运动】国民革命（大革命）1924—1927：第一次国共合作，以五卅运动为起点掀起全国大革命高潮，1926 年北伐推翻北洋军阀。1927 年四一二、七一五反革命政变标志大革命失败。",
+       "s": 4
+      },
+      {
+       "t": "【运动】南昌起义 1927.8.1：打响武装反抗国民党反动派的第一枪，是中国共产党独立领导革命战争、创建人民军队和武装夺取政权的开端。",
+       "s": 4
+      },
+      {
+       "t": "【会议】八七会议 1927.8.7（汉口）：确定土地革命和武装起义的方针，毛泽东提出「枪杆子里出政权」。是由大革命失败到土地革命战争兴起的历史性转变，给思想混乱中的党指明了新出路。",
+       "s": 4
+      },
+      {
+       "t": "【运动】秋收起义 1927.9：毛泽东领导，攻打长沙受挫后转向农村，进行三湾改编，从组织上确立党对军队的领导。从进攻大城市转向农村进军，是中国人民革命史上具有决定意义的新起点。",
+       "s": 4
+      },
+      {
+       "t": "【会议】古田会议 1929.12：通过古田会议决议，确立思想建党、政治建军原则，规定红军必须绝对服从党的领导。是党和人民军队建设史上的重要里程碑。",
+       "s": 4
+      },
+      {
+       "t": "【运动】抗日战争 1931—1945：九一八事变起点，1937 年七七事变进入全民族抗战。是近代以来中国人民反抗外敌入侵第一次取得完全胜利的民族解放斗争，台湾、澎湖列岛重归中国主权管辖。",
+       "s": 4
+      },
+      {
+       "t": "【运动】红军长征 1934—1936：中央红军战略转移，1935 年遵义会议、1936 年三大主力会宁会师。是中国革命转危为安的关键，宣告国民党消灭红军图谋的失败，铸就长征精神。",
+       "s": 4
+      },
+      {
+       "t": "【会议】遵义会议 1935.1（贵州遵义）：集中解决当时具有决定意义的军事和组织问题，事实上确立毛泽东在党中央和红军的领导地位。是党的历史上一个生死攸关的转折点，标志着党开始走向成熟，开启独立自主解决中国革命实际问题的新阶段。",
+       "s": 4
+      },
+      {
+       "t": "【会议】瓦窑堡会议 1935.12：提出党的基本策略任务是建立广泛的抗日民族统一战线，批评「左」倾关门主义，使党在新的历史时期到来时掌握了政治上的主动权。",
+       "s": 4
+      },
+      {
+       "t": "【会议】洛川会议 1937.8：制定抗日救国十大纲领，强调实行全国军事总动员、人民总动员。标志着党的全面抗战路线（人民战争路线）正式形成。",
+       "s": 4
+      },
+      {
+       "t": "【会议】六届六中全会 1938：毛泽东作《论新阶段》报告，首次提出「马克思主义中国化」命题；基本纠正王明右倾错误。毛泽东称之为「决定中国之命运的」会议。",
+       "s": 4
+      },
+      {
+       "t": "【会议】中共七大 1945.4（延安）：制定党的政治路线，概括三大作风，把毛泽东思想写入党章、确立为党的指导思想。标志着党在政治上思想上组织上走向成熟。",
+       "s": 4
+      },
+      {
+       "t": "【运动】解放战争 1946—1949：1946 年全面内战爆发，经战略防御、战略进攻、战略决战（三大战役），1949 年 4 月渡江战役解放南京，国民党反动统治覆灭。",
+       "s": 4
+      },
+      {
+       "t": "【运动】土地改革 1947、1950—1952：1947 年《中国土地法大纲》废除封建土地制度；1950 年《土地改革法》在新解放区完成土改，彻底废除封建土地制度。",
+       "s": 4
+      },
+      {
+       "t": "【会议】七届二中全会 1949.3（西柏坡）：说明党的工作重心必须由乡村转移到城市，规定全国胜利后的基本政策，提出「两个务必」。为新中国成立作了政治、思想准备。",
+       "s": 4
+      },
+      {
+       "div": "社会主义革命和建设时期（1949—1978）"
+      },
+      {
+       "t": "【运动】抗美援朝 1950—1953：保家卫国，打败美国侵略者。是中国人民站起来后屹立于世界东方的宣言书，是中华民族走向伟大复兴的重要里程碑。",
+       "s": 4
+      },
+      {
+       "t": "【运动】三大改造 1953—1956：对农业、手工业、资本主义工商业进行社会主义改造，1956 年底基本完成。标志着社会主义基本制度在中国确立，是中国历史上最深刻最伟大的社会变革。",
+       "s": 4
+      },
+      {
+       "t": "【会议】中共八大 1956.9：正确分析国内主要矛盾（人民对于经济文化迅速发展的需要同当前经济文化不能满足人民需要的状况之间的矛盾），提出集中力量发展社会生产力。是探索建设社会主义道路的良好开端。",
+       "s": 4
+      },
+      {
+       "t": "【运动】大跃进和人民公社化运动 1958：「左」倾错误，脱离实际、违背经济规律，使经济建设遭受挫折，留下深刻教训。",
+       "s": 4
+      },
+      {
+       "t": "【运动】文化大革命 1966—1976：十年内乱，党和国家事业遭受严重曲折，留下深刻教训。",
+       "s": 4
+      },
+      {
+       "div": "改革开放和社会主义现代化建设新时期（1978—2012）"
+      },
+      {
+       "t": "【会议】十一届三中全会 1978.12：否定「两个凡是」，停止使用「以阶级斗争为纲」，把工作重心转移到社会主义现代化建设上来，提出改革开放。重新确立思想、政治、组织路线，是新中国成立以来党的历史上具有深远意义的伟大转折，开启改革开放新时期。",
+       "s": 4
+      },
+      {
+       "t": "【运动】改革开放 1978—：十一届三中全会开启，农村改革率先突破，兴办经济特区，1992 年确立社会主义市场经济体制。是决定当代中国命运的关键一招。",
+       "s": 4
+      },
+      {
+       "t": "【会议】中共十二大 1982.9：邓小平提出「走自己的道路，建设有中国特色的社会主义」，从此「中国特色社会主义」成为党的全部理论和实践创新的主题。",
+       "s": 4
+      },
+      {
+       "t": "【会议】中共十三大 1987.10：系统阐述社会主义初级阶段理论，提出党在社会主义初级阶段的基本路线，明确「一个中心、两个基本点」。",
+       "s": 4
+      },
+      {
+       "t": "【会议】中共十四大 1992.10：明确社会主义市场经济体制改革目标，确立邓小平建设有中国特色社会主义理论在全党的指导地位。",
+       "s": 4
+      },
+      {
+       "t": "【会议】中共十五大 1997.9：把邓小平理论确立为党的指导思想并写入党章。",
+       "s": 4
+      },
+      {
+       "t": "【会议】中共十六大 2002.11：把「三个代表」重要思想确立为党的指导思想并写入党章，提出全面建设小康社会。",
+       "s": 4
+      },
+      {
+       "t": "【会议】中共十七大 2007.10：将科学发展观写入党章。",
+       "s": 4
+      },
+      {
+       "div": "中国特色社会主义新时代（2012— ）"
+      },
+      {
+       "t": "【会议】中共十八大 2012.11：中国特色社会主义进入新时代，提出全面建成小康社会目标。",
+       "s": 4
+      },
+      {
+       "t": "【会议】中共十九大 2017.10：把习近平新时代中国特色社会主义思想写入党章、确立为党必须长期坚持的指导思想；明确我国社会主要矛盾转化为人民日益增长的美好生活需要和不平衡不充分的发展之间的矛盾。",
+       "s": 4
+      },
+      {
+       "t": "【会议】中共二十大 2022.10：总结新时代十年伟大变革，提出以中国式现代化全面推进中华民族伟大复兴，明确中心任务。",
+       "s": 4
+      },
+      {
+       "t": "【会议】二十届三中全会 2024.7：审议通过《中共中央关于进一步全面深化改革、推进中国式现代化的决定》，对进一步全面深化改革作出系统部署，是新时代新征程上推动改革向广度和深度进军的总动员、总部署。",
+       "s": 4
+      },
+      {
+       "t": "【会议】二十届四中全会 2025.10：审议通过《中共中央关于制定国民经济和社会发展第十五个五年规划的建议》，提出「十五五」时期经济社会发展七大目标，明确高质量发展、科技自立自强、深化改革、社会文明、人民生活、美丽中国、国家安全等部署。",
+       "s": 4
+      },
+      {
+       "t": "【会议】十四届全国人大四次会议 2026.3：批准《国民经济和社会发展第十五个五年规划纲要》，设 20 项主要指标、6 方面 109 项重大工程，明确现代化产业体系、高水平科技自立自强、数字中国三篇战略部署。",
+       "s": 4
+      },
+      {
+       "t": "【会议】二十届五中全会 2026.10：审议通过《中共中央关于持之以恒推进全面从严治党若干重大问题的决定》，形成习近平党建思想；决定党的二十大于 2027 年下半年在北京召开。",
+       "s": 4
+      }
+     ]
+    },
+    {
+     "no": "时间点",
+     "title": "关键时间点（附）",
+     "points": [
+      {
+       "t": "1840｜鸦片战争：中国近代史起点，开始沦为半殖民地半封建社会",
+       "s": 5
+      },
+      {
+       "t": "1901｜《辛丑条约》：完全沦为半殖民地半封建社会",
+       "s": 5
+      },
+      {
+       "t": "1919｜五四运动：新民主主义革命开端",
+       "s": 5
+      },
+      {
+       "t": "1921｜中共成立：开天辟地的大事变",
+       "s": 5
+      },
+      {
+       "t": "1935｜遵义会议：党开始走向成熟",
+       "s": 5
+      },
+      {
+       "t": "1949｜中华人民共和国成立：新民主主义革命胜利，半殖民地半封建社会终结",
+       "s": 5
+      },
+      {
+       "t": "1956｜三大改造完成：社会主义制度确立",
+       "s": 4
+      },
+      {
+       "t": "1978｜十一届三中全会：改革开放起点，伟大转折",
+       "s": 4
+      },
+      {
+       "t": "2012｜中共十八大：中国特色社会主义进入新时代",
+       "s": 4
+      },
+      {
+       "t": "2021｜建党百年：全面建成小康社会",
+       "s": 4
+      },
+      {
+       "t": "2022｜中共二十大：以中国式现代化全面推进中华民族伟大复兴",
+       "s": 4
+      },
+      {
+       "t": "2024｜二十届三中全会：进一步全面深化改革、推进中国式现代化",
+       "s": 4
+      },
+      {
+       "t": "2025｜二十届四中全会：「十五五」规划建议",
+       "s": 4
+      },
+      {
+       "t": "2026｜二十届五中全会：全面从严治党决定、习近平党建思想",
+       "s": 4
+      }
+     ]
+    }
+   ]
+  }
+ ]
+};
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const state = { part:null, sec:null, era:'全部', starOnly:false, q:'' };
+let flatIndex = [];
+
+function starsBadge(n){
+  const cls = n>=5?'b5':(n>=4?'b4':'b3');
+  return `<span class="badge ${cls}">${'★'.repeat(n)}</span>`;
+}
+function esc(s){ return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function hl(s){
+  if(!state.q) return esc(s);
+  const q = state.q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return esc(s).replace(new RegExp(q,'gi'), m=>`<mark>${m}</mark>`);
+}
+
+function buildIndex(){
+  flatIndex = [];
+  for(const p of DATA.parts){
+    for(const s of (p.sections||[])){
+      flatIndex.push({part:p, sec:s});
+    }
+  }
+}
+
+function renderSidebar(){
+  const d = DATA.parts.map(p=>{
+    const open = state.part===p.id ? ' open':'';
+    const secs = (p.sections||[]).map(s=>
+      `<div class="sec${state.part===p.id&&state.sec===s.no?' active':''}" data-p="${p.id}" data-s="${s.no}">
+         <span class="st">${(s.points||[]).length}</span><span class="sn">${esc(s.no)}</span><span class="sx">${esc(s.title)}</span></div>`).join('');
+    return `<div class="part${open}" data-p="${p.id}">
+      <div class="part-head" data-p="${p.id}">
+        <span class="part-dot" style="background:${p.color}"></span>${esc(p.short)}
+        <span class="part-num">${(p.sections||[]).length} SEC</span>
+        <span class="part-caret">▶</span>
+      </div>
+      <div class="sec-list">${secs}</div>
+    </div>`;
+  }).join('');
+  $('#sidebar').innerHTML = d;
+  $$('.part-head').forEach(el=>el.addEventListener('click',()=>{
+    const id = el.dataset.p;
+    if(state.part===id){ state.part=null; state.sec=null; render(); }
+    else { state.part=id; state.sec=null; renderSidebar(); renderMain(); }
+  }));
+  $$('.sec').forEach(el=>el.addEventListener('click',()=>{
+    state.part = el.dataset.p; state.sec = el.dataset.s;
+    render();
+    window.scrollTo({top:0,behavior:'smooth'});
+    if(window.innerWidth<=820) $('#sidebar').classList.remove('show');
+  }));
+}
+
+function renderHome(){
+  const cards = DATA.parts.map(p=>{
+    let n = (p.sections||[]).length;
+    let desc = p.timeline ? '交互时间线：1840→2022 事件·人物·标志' : `${n} 个专题 · ${((p.sections||[]).reduce((a,s)=>a+(s.points||[]).length,0))} 条核心考点`;
+    return `<div class="home-card" data-p="${p.id}">
+      <div class="hc-top"><span class="part-dot" style="background:${p.color};width:9px;height:9px;border-radius:50%"></span>
+      <span class="hc-name">${esc(p.name)}</span><span class="hc-num">${n} 专题</span></div>
+      <div class="hc-desc">${esc(desc)}</div></div>`;
+  }).join('');
+  const total = DATA.parts.reduce((a,p)=>a+(p.sections||[]).length,0);
+  const pts = DATA.parts.reduce((a,p)=>a+(p.sections||[]).reduce((b,s)=>b+(s.points||[]).length,0),0);
+  $('#main').innerHTML = `
+    <div class="crumb">总览</div>
+    <h2 class="sec-title">考研政治 · 背诵手册交互学习站</h2>
+    <div class="sec-sub">${esc(DATA.meta.subtitle)}</div>
+    <div class="stat-grid">
+      <div class="stat"><div class="n">${total}</div><div class="l">SECTIONS / 专题</div></div>
+      <div class="stat"><div class="n">${pts}</div><div class="l">POINTS / 核心考点</div></div>
+      <div class="stat"><div class="n">${(DATA.parts.find(x=>x.timeline)||{timeline:[]}).timeline.length}</div><div class="l">TIMELINE / 时间线节点</div></div>
+    </div>
+    <div class="home-grid">${cards}</div>
+    <div class="footer-note">数据来源：${esc(DATA.meta.source)}<br>用法：左侧点板块 → 点专题；顶部搜索框可跨全部专题查考点（如「遵义会议」「量变质变」）。</div>`;
+  $$('.home-card').forEach(el=>el.addEventListener('click',()=>{
+    state.part = el.dataset.p; state.sec=null; render();
+  }));
+}
+
+function renderTimeline(p){
+  const eras = ['全部','旧民主主义','新民主主义','社会主义革命和建设','改革开放','新时代'];
+  const eraTabs = eras.map(e=>`<button class="era-tab${state.era===e?' active':''}" data-e="${e}">${e}</button>`).join('');
+  let rows = (p.timeline||[]);
+  if(state.era!=='全部') rows = rows.filter(r=>r.era===state.era);
+  if(state.starOnly) rows = rows.filter(r=>r.s>=4);
+  const tl = rows.map(r=>`<div class="tl-item">
+      <div class="tl-year">${esc(r.y)}</div><div class="tl-dot${r.s>=5?' s5':''}"></div>
+      <div class="tl-body">
+        <div class="tl-ev">${hl(r.e)} ${starsBadge(r.s)}</div>
+        ${r.p&&r.p!=='—'?`<div class="tl-p">人物/著作：${hl(r.p)}</div>`:''}
+        <div class="tl-m">${hl(r.m)}</div>
+      </div></div>`).join('');
+  return `<div class="era-tabs">${eraTabs}</div>
+    <div class="filter-bar">
+      <span class="lab">重要度</span>
+      <button class="chip${state.starOnly?' on':''}" id="starFilter">只看 ★★★★ 及以上</button>
+      <span class="lab" style="margin-left:auto">${rows.length} 个节点</span>
+    </div>
+    <div class="tl">${tl}</div>`;
+}
+
+function renderMain(){
+  if(!state.part){ renderHome(); return; }
+  const p = DATA.parts.find(x=>x.id===state.part);
+  if(!p){ renderHome(); return; }
+  // 板块总览
+  if(!state.sec){
+    const secs = (p.sections||[]).map(s=>{
+      const top = (s.points||[]).filter(pt=>!pt.div).slice(0,3).map(pt=>`<li>${starsBadge(pt.s)}<span class="ptext">${hl(pt.t)}</span></li>`).join('');
+      return `<div class="card"><div class="crumb">${esc(s.no)}</div><h2 class="sec-title" style="font-size:16px">${hl(s.title)}</h2>
+        <ul class="plist">${top}</ul></div>`;
+    }).join('');
+    const tlBlock = p.timeline ? `<div class="card"><div class="crumb">交互时间线</div><h2 class="sec-title" style="font-size:16px">史纲 · 重要事件时间线</h2>
+        <div class="sec-sub">按时期筛选、按重要度筛选；★★★★★ 为分析题级考点</div>${renderTimeline(p)}</div>` : '';
+    $('#main').innerHTML = `<div class="crumb">${esc(p.short)}</div>
+      <h2 class="sec-title">${esc(p.name)}</h2>
+      <div class="sec-sub">${(p.sections||[]).length} 个专题 · 点下方专题卡查看全部考点</div>
+      ${tlBlock}${secs}`;
+    bindTimeline(p);
+    return;
+  }
+  // 单专题
+  const s = (p.sections||[]).find(x=>x.no===state.sec);
+  if(!s){ renderHome(); return; }
+  const pts = (s.points||[]).map(pt=>pt.div?`<li class="pl-div">${esc(pt.div)}</li>`:`<li>${starsBadge(pt.s)}<span class="ptext">${hl(pt.t)}</span></li>`).join('');
+  const prevNext = (()=>{
+    const arr = p.sections||[]; const i = arr.findIndex(x=>x.no===s.no);
+    const prev = arr[i-1], next = arr[i+1];
+    return `<div style="display:flex;gap:10px;margin-top:18px">
+      ${prev?`<button class="chip" data-goto="${esc(prev.no)}">← ${esc(prev.no)}</button>`:''}
+      ${next?`<button class="chip" data-goto="${esc(next.no)}" style="margin-left:auto">${esc(next.no)} →</button>`:''}</div>`;
+  })();
+  $('#main').innerHTML = `<div class="crumb">${esc(p.short)} / ${esc(s.no)}</div>
+    <h2 class="sec-title">${hl(s.title)}</h2>
+    <div class="sec-sub">${(s.points||[]).length} 条核心考点 · ★★★★★ 分析题级 / ★★★★ 多选 / ★★★ 单选</div>
+    <div class="card"><ul class="plist">${pts}</ul></div>
+    ${prevNext}`;
+  $$('[data-goto]').forEach(el=>el.addEventListener('click',()=>{ state.sec=el.dataset.goto; render(); window.scrollTo({top:0,behavior:'smooth'}); }));
+}
+
+function bindTimeline(p){
+  $$('.era-tab').forEach(el=>el.addEventListener('click',()=>{ state.era=el.dataset.e; renderMain(); }));
+  const sf = $('#starFilter');
+  if(sf) sf.addEventListener('click',()=>{ state.starOnly=!state.starOnly; renderMain(); });
+}
+
+function render(){ renderSidebar(); renderMain(); }
+
+function doSearch(q){
+  state.q = q.trim();
+  if(!state.q){ render(); return; }
+  const term = state.q.toLowerCase();
+  const hits = [];
+  for(const p of DATA.parts){
+    for(const s of (p.sections||[])){
+      const secHit = (s.title||'').toLowerCase().includes(term) || (s.no||'').toLowerCase().includes(term);
+      const pts = (s.points||[]).filter(pt=>pt.t && pt.t.toLowerCase().includes(term));
+      if(secHit || pts.length) hits.push({p,s,secHit,pts});
+    }
+    for(const r of (p.timeline||[])){
+      const all = (r.y+' '+r.e+' '+r.p+' '+r.m).toLowerCase();
+      if(all.includes(term)) hits.push({p, tl:r});
+    }
+  }
+  if(!hits.length){
+    $('#main').innerHTML = `<div class="crumb">搜索</div><h2 class="sec-title">「${esc(state.q)}」</h2><div class="empty">没有找到相关考点，换个关键词试试（如：市场、矛盾、会议、条约）。</div>`;
+    return;
+  }
+  const html = hits.map(h=>{
+    if(h.tl){
+      return `<div class="card"><div class="crumb">${esc(h.p.short)} / 时间线</div>
+        <div class="tl-ev">${hl(h.tl.y)} ${hl(h.tl.e)} ${starsBadge(h.tl.s)}</div>
+        ${h.tl.p&&h.tl.p!=='—'?`<div class="tl-p">人物/著作：${hl(h.tl.p)}</div>`:''}
+        <div class="tl-m">${hl(h.tl.m)}</div></div>`;
+    }
+    const pts = (h.pts.length?h.pts:(h.s.points||[]).filter(pt=>pt.t).slice(0,4)).map(pt=>`<li>${starsBadge(pt.s)}<span class="ptext">${hl(pt.t)}</span></li>`).join('');
+    return `<div class="card"><div class="crumb">${esc(h.p.short)} / ${esc(h.s.no)}</div>
+      <h2 class="sec-title" style="font-size:15px">${hl(h.s.title)}</h2><ul class="plist">${pts}</ul></div>`;
+  }).join('');
+  $('#main').innerHTML = `<div class="crumb">搜索</div><h2 class="sec-title">「${esc(state.q)}」· ${hits.length} 条结果</h2><div class="sec-sub">点击左侧可回到专题浏览；清空搜索框恢复。</div>${html}`;
+}
+
+function init(){
+  buildIndex();
+  render();
+  let timer=null;
+  $('#search').addEventListener('input',e=>{
+    clearTimeout(timer);
+    timer = setTimeout(()=>doSearch(e.target.value), 180);
+  });
+  $('#search').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){ e.preventDefault(); clearTimeout(timer); doSearch(e.target.value); }
+  });
+  $('#menuBtn').addEventListener('click',()=>$('#sidebar').classList.toggle('show'));
+}
+document.addEventListener('DOMContentLoaded', init);
+
+
+/* —— 流沙背景：丝带流场，克制不抢内容 —— */
+(function(){
+  var c=document.getElementById('bg'); if(!c) return;
+  var ctx=c.getContext('2d'), W=0,H=0, ribbons=[], raf=0;
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function resize(){
+    var dpr=Math.min(window.devicePixelRatio||1,2);
+    W=c.width=Math.floor(innerWidth*dpr); H=c.height=Math.floor(innerHeight*dpr);
+    c.style.width=innerWidth+'px'; c.style.height=innerHeight+'px';
+    var n=Math.min(46, Math.max(18, Math.round(innerWidth*innerHeight/30000)));
+    ribbons=[];
+    for(var i=0;i<n;i++){
+      ribbons.push({y:Math.random()*H, sp:(0.10+Math.random()*0.28)*dpr, ph:Math.random()*Math.PI*2,
+                    amp:(18+Math.random()*46)*dpr, w:(0.5+Math.random()*0.9)*dpr,
+                    a:0.03+Math.random()*0.035});
+    }
+  }
+  function draw(t){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<ribbons.length;i++){
+      var r=ribbons[i];
+      r.y+=r.sp; if(r.y>H+120) r.y=-120;
+      ctx.beginPath();
+      for(var x=0;x<=W;x+=16){
+        var yy=r.y+Math.sin(x/(210)+r.ph+t*0.00007)*r.amp;
+        if(x===0) ctx.moveTo(x,yy); else ctx.lineTo(x,yy);
+      }
+      ctx.lineWidth=r.w; ctx.strokeStyle='rgba(18,50,74,'+r.a.toFixed(3)+')'; ctx.stroke();
+    }
+  }
+  var last=0;
+  function loop(t){ raf=requestAnimationFrame(loop); if(t-last>40){ draw(t); last=t; } }
+  addEventListener('resize', resize, {passive:true});
+  resize();
+  if(reduce){ draw(0); } else { raf=requestAnimationFrame(loop); }
+})();
+
+/* —— 贯通视图：把毛中特/习思想/思修挂到时间线（覆盖原渲染） —— */
+state.fusion = true;
+state.detail = null;
+
+/* —— 全局返回：记录浏览历史 —— */
+var HIST = [];
+function snapState(){ return {part:state.part, sec:state.sec, detail:state.detail, y:window.scrollY}; }
+function updateBackBtn(){ var b=document.getElementById('globalBack'); if(b) b.style.display = HIST.length ? 'inline-block' : 'none'; }
+function goBack(){
+  if(!HIST.length) return;
+  var s=HIST.pop();
+  state.part=s.part; state.sec=s.sec; state.detail=s.detail;
+  render(); updateBackBtn();
+  window.scrollTo({top:s.y||0,behavior:'auto'});
+}
+document.addEventListener('click', function(e){
+  var t = (e.target && e.target.closest) ? e.target.closest('.part-head,.sec,.home-card,.tl-layer.go,.tl-item[data-ev],.qa-loc[data-go],.rel-go') : null;
+  if(!t) return;
+  if(t.id==='globalBack' || t.id==='backBtn') return;
+  HIST.push(snapState()); updateBackBtn();
+}, true);
+var _gb = document.getElementById('globalBack'); if(_gb) _gb.onclick = goBack;
+function renderTimeline(p){
+  const eras = ['全部','旧民主主义','新民主主义','社会主义革命和建设','改革开放','新时代'];
+  const eraTabs = eras.map(e=>`<button class="era-tab${state.era===e?' active':''}" data-e="${e}">${e}</button>`).join('');
+  let rows = (p.timeline||[]);
+  if(state.era!=='全部') rows = rows.filter(r=>r.era===state.era);
+  if(state.starOnly) rows = rows.filter(r=>r.s>=4);
+  const tl = rows.map(r=>{
+    const layers=[];
+    const mk=(cls,label,txt,go)=>`<div class="tl-layer ${cls}${go?' go':''}"${go?` data-go="${go}"`:''}><span class="ll">${label}</span>${hl(txt)}</div>`;
+    if(r.mz) layers.push(mk('mz','毛中特',r.mz,r.mzGo));
+    if(r.xx) layers.push(mk('xx','习思想',r.xx,r.xxGo));
+    if(r.sx) layers.push(mk('sx','思修',r.sx,r.sxGo));
+    return `<div class="tl-item" data-ev="${esc(r.e)}" title="点击查看详解">
+      <div class="tl-year">${esc(r.y)}</div><div class="tl-dot${r.s>=5?' s5':''}"></div>
+      <div class="tl-body">
+        <div class="tl-ev">${hl(r.e)} ${starsBadge(r.s)}${r.freq?`<span class="tl-freq">真题×${r.freq}</span>`:''}</div>
+        ${r.p&&r.p!=='—'?`<div class="tl-p">人物/著作：${hl(r.p)}</div>`:''}
+        <div class="tl-m">${hl(r.m)}</div>
+        ${state.fusion&&layers.length?`<div class="tl-layers">${layers.join('')}</div>`:''}
+      </div></div>`;
+  }).join('');
+  return `<div class="era-tabs">${eraTabs}</div>
+    <div class="filter-bar">
+      <span class="lab">重要度</span>
+      <button class="chip${state.starOnly?' on':''}" id="starFilter">只看 ★★★★ 及以上</button>
+      <button class="chip${state.fusion?' on':''}" id="fusionToggle">贯通 毛中特·习思想·思修</button>
+      <span class="lab" style="margin-left:auto">${rows.length} 个节点</span>
+    </div>
+    <div class="tl-legend"><span><i style="background:#5b4fc4"></i>毛中特</span><span><i style="background:#a34d9e"></i>习思想</span><span><i style="background:#14786f"></i>思修</span></div>
+    <div class="tl">${tl}</div>`;
+}
+function bindTimeline(p){
+  $$('.era-tab').forEach(el=>el.addEventListener('click',()=>{ state.era=el.dataset.e; renderMain(); }));
+  const sf=$('#starFilter'); if(sf) sf.addEventListener('click',()=>{ state.starOnly=!state.starOnly; renderMain(); });
+  const ff=$('#fusionToggle'); if(ff) ff.addEventListener('click',()=>{ state.fusion=!state.fusion; renderMain(); });
+  $$('.tl-layer.go').forEach(el=>el.addEventListener('click',(ev)=>{
+    ev.stopPropagation();
+    const g=el.dataset.go.split('|'); state.part=g[0]; state.sec=g[1]; state.detail=null;
+    render(); window.scrollTo({top:0,behavior:'smooth'});
+  }));
+  $$('.tl-item[data-ev]').forEach(el=>el.addEventListener('click',()=>{
+    state.detail = el.dataset.ev; renderMain(); window.scrollTo({top:0,behavior:'smooth'});
+  }));
+}
+/* —— 事件详解页 —— */
+var _renderMainOrig = renderMain;
+renderMain = function(){
+  if(state.detail && state.part==='shigang'){ renderDetail(); return; }
+  state.detail = null;
+  _renderMainOrig();
+};
+function renderDetail(){
+  var p = DATA.parts.find(function(x){return x.id==='shigang';});
+  var it = (p.timeline||[]).find(function(x){return x.e===state.detail;});
+  if(!it){ state.detail=null; _renderMainOrig(); return; }
+  var kw = (it.e||'').split(/[（(·\s]/)[0];
+  var rel=[];
+  (p.sections||[]).forEach(function(s){
+    (s.points||[]).forEach(function(pt){
+      if(pt.t && kw && pt.t.indexOf(kw)>=0) rel.push({s:s,pt:pt});
+    });
+  });
+  var mk2=function(cls,label,txt,go){return '<div class="tl-layer '+cls+(go?' go':'')+'"'+(go?' data-go="'+go+'"':'')+'><span class="ll">'+label+'</span>'+esc(txt)+'</div>';};
+  var layers=[];
+  if(it.mz) layers.push(mk2('mz','毛中特',it.mz,it.mzGo));
+  if(it.xx) layers.push(mk2('xx','习思想',it.xx,it.xxGo));
+  if(it.sx) layers.push(mk2('sx','思修',it.sx,it.sxGo));
+  var html='';
+  html+='<button class="chip back" id="backBtn">← 返回时间线</button>';
+  html+='<div class="crumb">'+esc(p.short)+' / 时间线 / '+esc(it.y)+'</div>';
+  html+='<h2 class="sec-title">'+esc(it.e)+'</h2>';
+  html+='<div class="sec-sub"><span>'+esc(it.y)+'</span><span>'+esc(it.era||'')+'</span>'+starsBadge(it.s)+'</div>';
+  html+='<div class="card"><div class="crumb">详细解释</div><div class="detail-text">'+esc(it.detail||it.m||'')+'</div></div>';
+  if(it.p && it.p!=='—'){ html+='<div class="card"><div class="crumb">人物 / 著作</div><div class="detail-text">'+esc(it.p)+'</div></div>'; }
+  if(layers.length){ html+='<div class="card"><div class="crumb">贯通（点击可跳转专题）</div><div class="tl-layers">'+layers.join('')+'</div></div>'; }
+  if(rel.length){ html+='<div class="card"><div class="crumb">相关考点（点击进入专题）</div><ul class="plist">'; rel.slice(0,8).forEach(function(x){ html+='<li class="rel-go" data-go="shigang|'+esc(x.s.no)+'">'+starsBadge(x.pt.s)+'<span class="ptext">'+esc(x.pt.t)+'<span class="qa-src">'+esc(x.s.no)+' '+esc(x.s.title)+'</span></span></li>'; }); html+='</ul></div>'; }
+  document.getElementById('main').innerHTML=html;
+  document.getElementById('backBtn').onclick=goBack;
+  $$('.tl-layer.go').forEach(function(el){ el.addEventListener('click',function(ev){ ev.stopPropagation(); var g=el.dataset.go.split('|'); state.part=g[0]; state.sec=g[1]; state.detail=null; render(); window.scrollTo({top:0,behavior:'smooth'}); }); });
+  $$('.rel-go').forEach(function(el){ el.addEventListener('click',function(ev){ ev.stopPropagation(); var g=el.dataset.go.split('|'); state.part=g[0]; state.sec=g[1]; state.detail=null; render(); window.scrollTo({top:0,behavior:'smooth'}); }); });
+}
+
+
+/* ================= 刷题解疑：站内检索 ================= */
+var CORPUS=[], IDF={}, QN=0, QBUILT=false, QA_MODE=false;
+function qaTerms(s){
+  s=s.replace(/[（）()【】\[\]“”"'’‘《》<>「」，。、；：？！,.;:?!/\\|—\-…\s]+/g,' ');
+  var out=new Set();
+  (s.match(/[\u4e00-\u9fff]+/g)||[]).forEach(function(seg){
+    for(var i=0;i<seg.length-1;i++) out.add(seg.slice(i,i+2));
+  });
+  (s.toLowerCase().match(/[a-z0-9]+/g)||[]).forEach(function(w){ if(w.length>1) out.add(w); });
+  return out;
+}
+function qaBuild(){
+  if(QBUILT) return; QBUILT=true;
+  DATA.parts.forEach(function(p){
+    (p.sections||[]).forEach(function(s){
+      (s.points||[]).forEach(function(pt){
+        if(!pt.t) return;
+        CORPUS.push({pid:p.id,pshort:p.short,no:s.no,stitle:s.title,text:pt.t,star:pt.s,type:'point'});
+      });
+    });
+    (p.timeline||[]).forEach(function(t){
+      CORPUS.push({pid:p.id,pshort:p.short,no:'时间线',stitle:t.e,
+        text:(t.y+' '+t.e+' '+(t.p||'')+' '+(t.m||'')),star:t.s,type:'tl',y:t.y,m:t.m});
+    });
+  });
+  QN=CORPUS.length;
+  var df={};
+  CORPUS.forEach(function(d){
+    d.tf=qaTerms(d.text+' '+d.stitle);
+    d.tf.forEach(function(t){ df[t]=(df[t]||0)+1; });
+  });
+  Object.keys(df).forEach(function(t){ IDF[t]=Math.log(1+(QN-df[t]+0.5)/(df[t]+0.5)); });
+}
+function qaSearch(q,k){
+  qaBuild(); k=k||8;
+  var qt=qaTerms(q), scored=[];
+  CORPUS.forEach(function(d){
+    var sc=0;
+    qt.forEach(function(t){ if(d.tf.has(t)) sc+=(IDF[t]||0); });
+    var tt=qaTerms(d.stitle), th=0;
+    qt.forEach(function(t){ if(tt.has(t)) th++; });
+    sc+=th*1.5;
+    if(sc>0) scored.push({d:d,sc:sc});
+  });
+  scored.sort(function(a,b){return b.sc-a.sc;});
+  return scored.slice(0,k);
+}
+function qaParseOptions(q){
+  var lines=q.split(/\n+/).map(function(s){return s.trim();}).filter(Boolean);
+  var opts=[], stem=[];
+  lines.forEach(function(ln){
+    var m=ln.match(/^[（(]?([A-Da-d])[）)]?\s*[.、．:：]\s*(.+)$/);
+    if(m){ opts.push({k:m[1].toUpperCase(), t:m[2]}); }
+    else { stem.push(ln); }
+  });
+  return {stem:stem.join(' '), opts:opts};
+}
+function qaAnswer(q,hits){
+  if(!hits.length) return null;
+  var isTime=/(什么时候|何时|哪一年|哪年|什么时间|时间|年份|时期|阶段)/.test(q);
+  var isWhy=/(为什么|原因|由于|根源|依据|条件)/.test(q);
+  var isMean=/(意义|作用|影响|地位|标志着|重要性|里程碑|转折点|开端)/.test(q);
+  var isDef=!isMean && /(是什么|什么是|是指|含义|概念|定义|内涵)/.test(q);
+  var isDiff=/(区别|不同|差异|比较|异同)/.test(q);
+  var isHow=/(怎样|如何|措施|要求|怎么办|途径|方法)/.test(q);
+  var stop=/(什么时候|何时|哪一年|哪年|什么是|是什么|是指|的含义|的概念|的定义|的意义|的原因|的区别|的作用|的影响|为什么|怎么样|如何|怎样|什么|哪些|哪个|请|问|一下|在|的|和|与|及|以及|是|呢|吗)/g;
+  var topic=q.replace(stop,'').replace(/[，。、；：？！\sA-D.、．()（）]/g,'');
+  var best=null;
+
+  // 规则1：定义题 —— 优先取「主题词+是/指」开头的定义句
+  if(isDef && topic.length>=2){
+    var c1=hits.filter(function(h){
+      var t=h.d.text;
+      return t.indexOf(topic+'是')===0 || t.indexOf(topic+'指')===0;
+    });
+    if(!c1.length){
+      c1=hits.filter(function(h){
+        var t=h.d.text, p=t.indexOf(topic);
+        if(p<0||p>10) return false;
+        return /^(是|指)/.test(t.slice(p+topic.length,p+topic.length+2));
+      });
+    }
+    if(!c1.length){
+      c1=hits.filter(function(h){ return h.d.type==='point' && h.d.text.indexOf(topic)>=0 && h.d.text.indexOf(topic)<12; });
+    }
+    if(c1.length){ c1.sort(function(a,b){return b.sc-a.sc;}); best=c1[0].d; }
+  }
+  // 规则1.5：意义题 —— 优先「专题考点」原文，而不是时间线拼接文本
+  if(!best && isMean && topic.length>=2){
+    var c2=hits.filter(function(h){ return h.d.type==='point' && h.d.text.indexOf(topic)>=0 && h.d.text.indexOf(topic)<8; });
+    if(c2.length){ c2.sort(function(a,b){return b.sc-a.sc;}); best=c2[0].d; }
+  }
+  // 规则2：其余题型 —— 相关度为主，题型与主题词为辅
+  if(!best){
+    function typeScore(d){
+      var s=0,t=d.text;
+      if(d.type==='point') s+=0.4;
+      if(isTime&&/\d{4}/.test(t)) s+=3;
+      if(isWhy&&/(原因|因为|由于|根源|依据|条件)/.test(t)) s+=3;
+      if(isMean&&/(意义|作用|地位|标志着|影响|里程碑|转折点|开端)/.test(t)) s+=3;
+      if(isDiff&&/(区别|不同|差异)/.test(t)) s+=3;
+      if(isHow&&/(要|必须|坚持|要求|措施)/.test(t)) s+=2;
+      return s;
+    }
+    function topicBoost(d){
+      if(!topic) return 0;
+      var t=d.text;
+      if(t.indexOf(topic)===0) return 2;
+      for(var L=Math.min(4,topic.length);L>=2;L--){
+        var suf=topic.slice(topic.length-L);
+        if(t.indexOf(suf)===0) return 1.2;
+        var p=t.indexOf(suf);
+        if(p>=0&&p<6) return 0.8;
+      }
+      return 0;
+    }
+    var top=hits[0].sc||1, bs=-1e9;
+    hits.slice(0,6).forEach(function(h){
+      var s=(h.sc||0)/top + typeScore(h.d)/3*0.35 + topicBoost(h.d);
+      if(s>bs){bs=s;best=h.d;}
+    });
+  }
+  var type=isTime?'时间':(isWhy?'原因':(isMean?'意义':(isDef?'定义':(isDiff?'区别':(isHow?'做法':'要点')))));
+  var years=(best.text.match(/\d{4}(?:\s*[—\-–~至]\s*\d{4})?/)||[])[0]||'';
+  return {d:best,type:type,years:years};
+}
+function qaRender(){
+  var q=document.getElementById('qaInput').value.trim();
+  var out=document.getElementById('qaOut');
+  if(!q){ out.innerHTML='<div class="empty">先粘贴题目或输入问题</div>'; return; }
+  var hits=qaSearch(q,10);
+  if(!hits.length){ out.innerHTML='<div class="empty">没有匹配到考点。换几个关键词，或直接问「遵义会议的意义是什么」这类具体问题。</div>'; return; }
+  var wide=qaSearch(q,30);
+  var byPart={}; hits.forEach(function(h){ byPart[h.d.pshort]=(byPart[h.d.pshort]||0)+h.sc; });
+  var partRank=Object.keys(byPart).sort(function(a,b){return byPart[b]-byPart[a];});
+  var bySec={}, order=[];
+  hits.forEach(function(h){
+    if(h.d.type!=='point') return;
+    var key=h.d.pid+'|'+h.d.no;
+    if(!bySec[key]){ bySec[key]={d:h.d,sc:0}; order.push(key); }
+    bySec[key].sc+=h.sc;
+  });
+  order.sort(function(a,b){return bySec[b].sc-bySec[a].sc;});
+  var secs=order.slice(0,2).map(function(k){return bySec[k];});
+  var tls=hits.filter(function(h){return h.d.type==='tl';}).slice(0,3);
+  var cap=['根本','本质','核心','关键','首要','前提','基础','标志','实质','最'].filter(function(w){return q.indexOf(w)>=0;});
+  var abs=['唯一','一切','所有','完全','彻底','必然','一定','都'].filter(function(w){return q.indexOf(w)>=0;});
+  var isQ=/[A-D][.、．]/.test(q);
+  var html='';
+  html+='<div class="qa-hintline">'
+    +'<span class="qa-tag">判定：'+(isQ?'题目解析':'知识问答')+'</span>'
+    +'<span class="qa-tag">主学科：'+partRank.slice(0,2).join(' / ')+'</span>'
+    +(cap.length?'<span class="qa-tag cap">帽词：'+cap.join(' ')+'</span>':'')
+    +(abs.length?'<span class="qa-tag abs">绝对化：'+abs.join(' ')+'</span>':'')
+    +'</div>';
+  var ans=qaAnswer(q,wide);
+  var parsed=qaParseOptions(q);
+  if(ans && parsed.opts.length<2){
+    var body=esc(ans.d.text);
+    if(ans.years) body=body.replace(ans.years,'<b class="qa-key">'+ans.years+'</b>');
+    html+='<div class="qa-answer"><div class="crumb">作答</div>'
+      +'<div class="qa-ans">答：'+body+'</div>'
+      +'<div class="qa-ans-src">依据 '+esc(ans.d.pshort)+' / '+esc(ans.d.no)+'　·　问法 '+ans.type+'</div></div>';
+    var hi=-1; hits.forEach(function(h,i){ if(h.d===ans.d) hi=i; });
+    if(hi>0){ var one=hits.splice(hi,1)[0]; hits.unshift(one); }
+  }
+  if(parsed.opts.length){
+    // 题干定位到的专题（判断选项是否与题干同源）
+    var stemHits = qaSearch(parsed.stem, 6);
+    var stemSec = {};
+    stemHits.forEach(function(h){ stemSec[h.d.pid+'|'+h.d.no] = 1; });
+    function jac(a,b){ var n=0; a.forEach(function(t){ if(b.has(t)) n++; }); return n/Math.max(1,a.size); }
+    var stemCore = parsed.stem;
+    var sents = parsed.stem.split(/[。？！?；;]/).filter(function(x){ return x.trim().length >= 8; });
+    if(sents.length) stemCore = sents[sents.length-1].trim();
+    var judged = parsed.opts.map(function(o){
+      var oh = qaSearch(o.t, 6);
+      if(!oh.length) oh = qaSearch(parsed.stem+' '+o.t, 6);
+      var ob = qaTerms(o.t), sb = qaTerms(stemCore + ' ' + parsed.stem.slice(0, 60));
+      var best=null, bestScore=-1, bestOpt=0, bestStem=0, bestInStem=false;
+      oh.forEach(function(h){
+        var optSim = jac(ob, qaTerms(h.d.text));
+        var stemSim = jac(sb, qaTerms(h.d.text));
+        var inStem = !!stemSec[h.d.pid+'|'+h.d.no];
+        var sc = optSim*0.62 + stemSim*0.30 + (inStem ? 0.08 : 0);
+        if(sc>bestScore){ bestScore=sc; best=h.d; bestOpt=optSim; bestStem=stemSim; bestInStem=inStem; }
+      });
+      var verdict, cls;
+      if(bestOpt>=0.45 && bestStem>=0.28){ verdict='原文支持'; cls='ok'; }
+      else if(bestOpt>=0.45){ verdict='原文有此表述·与题干关联弱'; cls='mid'; }
+      else if(bestOpt>=0.28 || (bestStem>=0.35 && bestOpt>=0.2)){ verdict='部分对应'; cls='mid'; }
+      else { verdict='未找到依据'; cls='no'; }
+      return {o:o, best:best, optSim:bestOpt, stemSim:bestStem, inStem:bestInStem, verdict:verdict, cls:cls, score:bestScore};
+    });
+    html+='<div class="card"><div class="crumb">选项判读（机器推断）</div><table class="qa-opt"><thead><tr><th>选项</th><th>判定</th><th>依据原文</th></tr></thead><tbody>';
+    judged.forEach(function(j){
+      var warn=/(而不是|不是)/.test(j.o.t)?'<span class="qa-warn">否定式</span>':'';
+      html+='<tr><td class="oc"><b>'+j.o.k+'</b> '+esc(j.o.t)+warn+'</td>'
+        +'<td><span class="qa-verdict '+j.cls+'">'+j.verdict+'</span></td>'
+        +'<td>'+(j.best ? esc(j.best.text)+'<span class="qa-src">'+esc(j.best.pshort)+' / '+esc(j.best.no)+'</span>' : '<span class="qa-miss">未找到直接对应</span>')+'</td></tr>';
+    });
+    var okKeys = judged.filter(function(j){ return j.cls==='ok'; }).map(function(j){ return j.o.k; });
+    var sorted = judged.slice().sort(function(a,b){ return b.score-a.score; });
+    var top = sorted[0], second = sorted[1];
+    var gap = (top && second) ? (top.score - second.score) : 0;
+    var suggest = okKeys.length ? okKeys.join('、') + (okKeys.length>1 ? '（可能多选）' : '') : (top ? top.o.k : '—');
+    var conf = (gap > 0.06) ? '区分度较高' : '区分度低，请自行判断';
+    html+='</tbody></table>'
+      +'<div class="qa-suggest">建议答案：<b>'+suggest+'</b> <span class="qa-conf">'+conf+'</span></div>'
+      +'<div class="qa-note">机器按「选项与手册原文的吻合度 + 是否与题干同一考点」推断，仅供参考，以教材/真题答案为准。</div></div>';
+  }
+  if(secs.length){
+    html+='<div class="card"><div class="crumb">定位到的专题（点击进入）</div>';
+    secs.forEach(function(s){
+      html+='<div class="qa-loc" data-go="'+s.d.pid+'|'+s.d.no+'"><b>'+esc(s.d.pshort)+' / '+esc(s.d.no)+'</b> '+esc(s.d.stitle)+'</div>';
+    });
+    html+='</div>';
+  }
+  html+='<div class="card"><div class="crumb">原文依据（背诵手册）</div><ul class="plist">';
+  hits.slice(0,8).forEach(function(h){
+    var loc=h.d.type==='tl'?('时间线 '+esc(h.d.y)):(esc(h.d.pshort)+' / '+esc(h.d.no));
+    var body=h.d.type==='tl'?(esc(h.d.y)+' '+esc(h.d.stitle)+'：'+esc(h.d.m||'')):esc(h.d.text);
+    html+='<li>'+starsBadge(h.d.star)+'<span class="ptext">'+body+'<span class="qa-src">'+loc+'</span></span></li>';
+  });
+  html+='</ul></div>';
+  if(tls.length){
+    html+='<div class="card"><div class="crumb">相关时间线节点</div><ul class="plist">';
+    tls.forEach(function(h){
+      html+='<li>'+starsBadge(h.d.star)+'<span class="ptext"><b>'+esc(h.d.y)+' '+esc(h.d.stitle)+'</b><br>'+esc(h.d.m||'')+'</span></li>';
+    });
+    html+='</ul></div>';
+  }
+  html+='<div class="footer-note">说明：「作答」是从手册原句中抽取最匹配的一条作为回答，不是模型生成；若与选项冲突，以原文为准。题干+选项越完整，定位越准。</div>';
+  html+='<div class="qa-actions" style="margin-top:10px"><button class="chip" id="qaCopy">复制题目+依据给 AI</button></div>';
+  out.innerHTML=html;
+  var cb=document.getElementById('qaCopy');
+  if(cb) cb.onclick=function(){
+    var hs=qaSearch(q,6);
+    var txt='题目：'+q+'\n\n【本站检索到的依据】\n'+hs.map(function(h,i){return (i+1)+'. ['+h.d.pshort+' / '+h.d.no+'] '+h.d.text;}).join('\n');
+    var done=function(){ cb.textContent='已复制'; setTimeout(function(){ cb.textContent='复制题目+依据给 AI'; },1500); };
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done,function(){ alert(txt); }); }
+    else { window.prompt('复制下面的内容：',txt); }
+  };
+  Array.prototype.forEach.call(out.querySelectorAll('.qa-loc[data-go]'),function(el){
+    el.addEventListener('click',function(){
+      var g=el.dataset.go.split('|'); state.part=g[0]; state.sec=g[1];
+      render(); window.scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+}
+/* —— AI 详解：浏览器直连 DeepSeek（key 存本机，不经服务器） —— */
+function qaAI(){
+  var ta=document.getElementById('qaInput');
+  var q=(ta&&ta.value||'').trim();
+  if(!q){ return; }
+  var hits=qaSearch(q,8);
+  var ctx=hits.map(function(h){ return '【'+h.d.pshort+' / '+h.d.no+'】'+h.d.text; }).join('\n');
+  var out=document.getElementById('qaOut');
+  var card=document.getElementById('aiCard');
+  if(!card){ card=document.createElement('div'); card.className='card'; card.id='aiCard'; out.insertBefore(card, out.firstChild); }
+  var key='';
+  try { key=localStorage.getItem('dsk_key')||''; } catch(e){}
+  if(!key){
+    card.innerHTML='<div class="crumb">AI 详解（DeepSeek）</div>'
+      +'<div class="qa-note">首次使用需填入 DeepSeek API Key。key 只保存在你本机浏览器（localStorage），不会上传到任何服务器。申请地址：platform.deepseek.com</div>'
+      +'<div class="qa-keyrow"><input id="dskInput" class="qa-key" type="password" placeholder="sk-..."><button class="chip on" id="dskSave">保存并解析</button></div>';
+    document.getElementById('dskSave').onclick=function(){
+      var v=(document.getElementById('dskInput').value||'').trim();
+      if(!v) return;
+      try { localStorage.setItem('dsk_key', v); } catch(e){}
+      qaAI();
+    };
+    window.scrollTo({top:0,behavior:'smooth'});
+    return;
+  }
+  card.innerHTML='<div class="crumb">AI 详解（DeepSeek）</div><div class="qa-loading">正在调用模型，约 5—15 秒…</div>';
+  window.scrollTo({top:0,behavior:'smooth'});
+  var sys='你是考研政治助教，面向2027考研学生。只依据用户提供的《肖秀荣背诵手册》资料作答；资料不足就明确说“手册未覆盖”，不要编造。'
+    +'输出格式：第一行给出答案（单选写“答案：X”，多选写“答案：X、Y”，不确定写“资料不足”）；'
+    +'然后逐项分析 A/B/C/D，每项一行写“对/错”并给一句理由，尽量引用资料原文；最后一句点出本题考点。语言精炼。';
+  fetch('https://api.deepseek.com/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({model:'deepseek-chat',temperature:0.2,max_tokens:1400,
+      messages:[{role:'system',content:sys},{role:'user',content:'题目：\n'+q+'\n\n参考资料（手册原文）：\n'+ctx}]})
+  }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
+   .then(function(res){
+      var el=document.getElementById('aiCard'); if(!el) return;
+      if(!res.ok || !res.j.choices){
+        var msg=(res.j&&res.j.error&&res.j.error.message)?res.j.error.message:('HTTP 错误');
+        if(res.status===401||/401|invalid/i.test(msg)){ try{ localStorage.removeItem('dsk_key'); }catch(e){} msg+='（key 无效，已清除，请重新填写）'; }
+        el.innerHTML='<div class="crumb">AI 详解（DeepSeek）</div><div class="qa-miss">调用失败：'+esc(String(msg).slice(0,160))+'</div>';
+        return;
+      }
+      var ans=res.j.choices[0].message.content||'';
+      el.innerHTML='<div class="crumb">AI 详解（DeepSeek）</div><div class="ai-answer">'+esc(ans).replace(/\n/g,'<br>')+'</div>'
+        +'<div class="qa-note">模型基于本站检索到的原文作答；如与手册原文冲突，以原文为准。'
+        +'<a href="#" id="dskReset" style="margin-left:8px">清除已保存的 key</a></div>';
+      var rr=document.getElementById('dskReset');
+      if(rr) rr.onclick=function(ev){ ev.preventDefault(); try{ localStorage.removeItem('dsk_key'); }catch(e){} el.innerHTML='<div class="crumb">AI 详解</div><div class="qa-note">已清除 key。</div>'; };
+   })
+   .catch(function(e){
+      var el=document.getElementById('aiCard'); if(el) el.innerHTML='<div class="crumb">AI 详解</div><div class="qa-miss">网络错误：'+esc(String(e).slice(0,80))+'</div>';
+   });
+}
+function renderQA(){
+  QA_MODE=true;
+  qaBuild();
+  document.getElementById('main').innerHTML=
+    '<div class="crumb">STUDY TOOL / RETRIEVAL</div>'
+    +'<h2 class="sec-title">刷题解疑</h2>'
+    +'<div class="sec-sub">粘贴肖1000题干（可带 A–D 选项）或直接提问，系统用站内 '+QN+' 条考点做定位并给出原文依据</div>'
+    +'<div class="card">'
+    +'<textarea id="qaInput" class="qa-input" placeholder="例：&#10;1. 马克思主义产生的直接理论来源是（ ）&#10;A. 德国古典哲学  B. 英国古典政治经济学&#10;C. 英法空想社会主义  D. 细胞学说&#10;&#10;或直接问：遵义会议的意义是什么？"></textarea>'
+    +'<div class="qa-actions"><button class="chip on" id="qaGo">解析</button><button class="chip" id="qaAI">AI 详解</button><button class="chip" id="qaClear">清空</button><span class="lab">Enter 解析 · Shift+Enter 换行</span></div>'
+    +'</div><div id="qaOut"></div>';
+  var qi=document.getElementById('qaInput');
+  document.getElementById('qaGo').onclick=qaRender;
+  var aiBtn=document.getElementById('qaAI');
+  if(aiBtn) aiBtn.onclick=qaAI;
+  document.getElementById('qaClear').onclick=function(){ qi.value=''; document.getElementById('qaOut').innerHTML=''; };
+  qi.addEventListener('keydown',function(e){
+    if(e.key==='Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); qaRender(); }
+  });
+  qi.focus();
+}
+var _qb=document.getElementById('qaBtn'); if(_qb) _qb.onclick=renderQA;
+
+</script>
+</body>
+</html>
