@@ -240,7 +240,7 @@ mark{background:rgba(20,120,181,.16);color:inherit;padding:0 1px}
   </div>
   <button id="globalBack" class="chip back-chip" style="display:none">← 返回</button>
   <div class="spec"><span>STUDY SHEET <b>2027</b></span>
-      <span>UPDATED <b>2026-11-08 21:05</b></span>
+      <span>UPDATED <b>2026-11-08 21:11</b></span>
       <span><b>123</b> SECTIONS</span>
       <span><b>939</b> POINTS</span>
       <span><b>90</b> TIMELINE</span></div>
@@ -6398,9 +6398,12 @@ function qaAI(){
   }
   card.innerHTML='<div class="crumb">AI 详解（DeepSeek）</div><div class="qa-loading">正在调用模型，约 5—15 秒…</div>';
   window.scrollTo({top:0,behavior:'smooth'});
-  var sys='你是考研政治助教，面向2027考研学生。只依据用户提供的《肖秀荣背诵手册》资料作答；资料不足就明确说“手册未覆盖”，不要编造。'
-    +'输出格式：第一行给出答案（单选写“答案：X”，多选写“答案：X、Y”，不确定写“资料不足”）；'
-    +'然后逐项分析 A/B/C/D，每项一行写“对/错”并给一句理由，尽量引用资料原文；最后一句点出本题考点。语言精炼。';
+  var sys='你是考研政治助教，面向2027考研学生。回答规则：'
+    +'①优先依据用户提供的《肖秀荣背诵手册》资料，资料能判断就在理由里引用原文；'
+    +'②如果资料明显不覆盖这道题，就直接用你自己的知识作答，但必须在开头标注「【手册未覆盖·模型知识】」，提醒可能不准确；'
+    +'③不要因为资料缺失就说"无法回答"，除非题目本身有误。'
+    +'输出格式：第一行给出答案（单选写“答案：X”，多选写“答案：X、Y”）；'
+    +'然后逐项分析 A/B/C/D，每项一行写“对/错”并给一句理由；最后一句点出本题考点。语言精炼。';
   fetch('https://api.deepseek.com/chat/completions',{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
