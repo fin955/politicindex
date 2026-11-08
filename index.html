@@ -240,7 +240,7 @@ mark{background:rgba(20,120,181,.16);color:inherit;padding:0 1px}
   </div>
   <button id="globalBack" class="chip back-chip" style="display:none">← 返回</button>
   <div class="spec"><span>STUDY SHEET <b>2027</b></span>
-      <span>UPDATED <b>2026-11-08 21:11</b></span>
+      <span>UPDATED <b>2026-11-08 21:17</b></span>
       <span><b>123</b> SECTIONS</span>
       <span><b>939</b> POINTS</span>
       <span><b>90</b> TIMELINE</span></div>
@@ -6381,22 +6381,37 @@ function qaAI(){
   var out=document.getElementById('qaOut');
   var card=document.getElementById('aiCard');
   if(!card){ card=document.createElement('div'); card.className='card'; card.id='aiCard'; out.insertBefore(card, out.firstChild); }
-  var key='';
-  try { key=localStorage.getItem('dsk_key')||''; } catch(e){}
-  if(!key){
-    card.innerHTML='<div class="crumb">AI 详解（DeepSeek）</div>'
-      +'<div class="qa-note">首次使用需填入 DeepSeek API Key。key 只保存在你本机浏览器（localStorage），不会上传到任何服务器。申请地址：platform.deepseek.com</div>'
-      +'<div class="qa-keyrow"><input id="dskInput" class="qa-key" type="password" placeholder="sk-..."><button class="chip on" id="dskSave">保存并解析</button></div>';
+  var key='', ep='', model='';
+  try {
+    key=localStorage.getItem('dsk_key')||'';
+    ep=localStorage.getItem('ai_ep')||'';
+    model=localStorage.getItem('ai_model')||'';
+  } catch(e){}
+  if(!ep) ep='https://api.deepseek.com/chat/completions';
+  if(!model) model='deepseek-chat';
+  var isLocal = /localhost|127\.0\.0\.1|192\.168\./.test(ep);
+  if(!key && !isLocal){
+    card.innerHTML='<div class="crumb">AI 详解</div>'
+      +'<div class="qa-note">首次使用需填 DeepSeek API Key（只存本机浏览器，不上传）。申请：platform.deepseek.com<br>想离线用本地模型（Ollama / LM Studio），把接口地址改成 <code>http://localhost:11434/v1/chat/completions</code>，模型名填 <code>qwen2.5:7b</code>，key 留空即可。</div>'
+      +'<div class="qa-keyrow"><input id="dskInput" class="qa-key" type="password" placeholder="sk-...（本地模型可留空）"></div>'
+      +'<div class="qa-keyrow"><input id="epInput" class="qa-key" placeholder="接口地址" value="'+esc(ep)+'"></div>'
+      +'<div class="qa-keyrow"><input id="mdInput" class="qa-key" placeholder="模型名" value="'+esc(model)+'"></div>'
+      +'<div class="qa-keyrow"><button class="chip on" id="dskSave">保存并解析</button></div>';
     document.getElementById('dskSave').onclick=function(){
       var v=(document.getElementById('dskInput').value||'').trim();
-      if(!v) return;
-      try { localStorage.setItem('dsk_key', v); } catch(e){}
+      var e2=(document.getElementById('epInput').value||'').trim();
+      var m2=(document.getElementById('mdInput').value||'').trim();
+      try {
+        if(v) localStorage.setItem('dsk_key', v);
+        if(e2) localStorage.setItem('ai_ep', e2);
+        if(m2) localStorage.setItem('ai_model', m2);
+      } catch(err){}
       qaAI();
     };
     window.scrollTo({top:0,behavior:'smooth'});
     return;
   }
-  card.innerHTML='<div class="crumb">AI 详解（DeepSeek）</div><div class="qa-loading">正在调用模型，约 5—15 秒…</div>';
+  card.innerHTML='<div class="crumb">AI 详解</div><div class="qa-loading">正在调用模型，约 5—15 秒…</div>';
   window.scrollTo({top:0,behavior:'smooth'});
   var sys='你是考研政治助教，面向2027考研学生。回答规则：'
     +'①优先依据用户提供的《肖秀荣背诵手册》资料，资料能判断就在理由里引用原文；'
@@ -6404,12 +6419,14 @@ function qaAI(){
     +'③不要因为资料缺失就说"无法回答"，除非题目本身有误。'
     +'输出格式：第一行给出答案（单选写“答案：X”，多选写“答案：X、Y”）；'
     +'然后逐项分析 A/B/C/D，每项一行写“对/错”并给一句理由；最后一句点出本题考点。语言精炼。';
-  fetch('https://api.deepseek.com/chat/completions',{
+  var hdrs={'Content-Type':'application/json'};
+  if(key) hdrs['Authorization']='Bearer '+key;
+  fetch(ep,{
     method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-    body:JSON.stringify({model:'deepseek-chat',temperature:0.2,max_tokens:1400,
+    headers:hdrs,
+    body:JSON.stringify({model:model,temperature:0.2,max_tokens:1400,
       messages:[{role:'system',content:sys},{role:'user',content:'题目：\n'+q+'\n\n参考资料（手册原文）：\n'+ctx}]})
-  }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
+  }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok,status:r.status,j:j}; }); })
    .then(function(res){
       var el=document.getElementById('aiCard'); if(!el) return;
       if(!res.ok || !res.j.choices){
