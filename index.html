@@ -240,7 +240,7 @@ mark{background:rgba(20,120,181,.16);color:inherit;padding:0 1px}
   </div>
   <button id="globalBack" class="chip back-chip" style="display:none">← 返回</button>
   <div class="spec"><span>STUDY SHEET <b>2027</b></span>
-      <span>UPDATED <b>2026-11-09 19:33</b></span>
+      <span>UPDATED <b>2026-11-09 19:35</b></span>
       <span><b>127</b> SECTIONS</span>
       <span><b>965</b> POINTS</span>
       <span><b>90</b> TIMELINE</span></div>
@@ -6060,17 +6060,18 @@ function render(){ renderSidebar(); renderMain(); }
 function doSearch(q){
   state.q = q.trim();
   if(!state.q){ render(); return; }
-  const term = state.q.toLowerCase();
+  const terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+  const hit = t => { const s=(t||'').toLowerCase(); return terms.every(x=>s.includes(x)); };
   const hits = [];
   for(const p of DATA.parts){
     for(const s of (p.sections||[])){
-      const secHit = (s.title||'').toLowerCase().includes(term) || (s.no||'').toLowerCase().includes(term);
-      const pts = (s.points||[]).filter(pt=>pt.t && pt.t.toLowerCase().includes(term));
+      const secHit = hit(s.title) || hit(s.no);
+      const pts = (s.points||[]).filter(pt=>pt.t && hit(pt.t));
       if(secHit || pts.length) hits.push({p,s,secHit,pts});
     }
     for(const r of (p.timeline||[])){
       const all = (r.y+' '+r.e+' '+r.p+' '+r.m).toLowerCase();
-      if(all.includes(term)) hits.push({p, tl:r});
+      if(hit(all)) hits.push({p, tl:r});
     }
   }
   if(!hits.length){
