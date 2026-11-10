@@ -192,25 +192,37 @@ mark{background:rgba(20,120,181,.2);color:inherit;padding:0 2px;border-radius:2p
 .path-arrow{font-size:11px;color:var(--accent);opacity:0;transition:.2s;margin-left:auto}
 .path-item:hover .path-arrow{opacity:1}
 
-/* 正文段落 */
-.prose{font-size:13.8px;line-height:2.0;color:var(--ink)}
-.prose p{margin:0 0 13px;text-indent:2em}
-.prose p:last-child{margin-bottom:0}
-.prose .prose-h{
-  font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--accent-ink);margin:18px 0 8px;padding-left:9px;border-left:3px solid var(--accent);
-  text-indent:0;
+/* 正文：分区区块，块内连贯成段 */
+.prose{font-size:13.8px;line-height:1.95;color:var(--ink);letter-spacing:.15px}
+.prose .grp-h{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--accent-ink);margin:22px 0 12px;padding:0 0 6px 0;
+  border-bottom:1px solid rgba(20,120,181,.25);font-weight:700;
 }
-.prose .prose-h:first-child{margin-top:0}
+.prose .grp-h:first-child{margin-top:0}
+.prose .blk{position:relative;margin:0 0 18px;padding-left:13px;border-left:2px solid var(--line-2);transition:.2s}
+.prose .blk:last-child{margin-bottom:0}
+.prose .blk:hover{border-left-color:var(--accent)}
+.prose .blk-h{display:flex;align-items:baseline;gap:7px;margin-bottom:5px;flex-wrap:wrap}
+.prose .no{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--accent);letter-spacing:.06em}
+.prose .name{
+  font-size:11.5px;font-weight:700;color:var(--accent-ink);line-height:1.5;
+}
+.prose .blk p{margin:0;text-indent:2em;line-height:1.95}
 .prose .kind{
-  font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.04em;
-  color:var(--accent-ink);background:rgba(20,120,181,.1);
-  border:1px solid rgba(20,120,181,.25);border-radius:3px;padding:0 4px;margin-right:2px;
+  font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--accent-ink);
+  background:rgba(20,120,181,.09);border:1px solid rgba(20,120,181,.22);
+  border-radius:3px;padding:0 4px;margin-right:3px;
 }
 .prose b.lead{font-weight:700}
-.prose-sum{font-size:12.5px;line-height:1.85;color:var(--ink-2);text-indent:2em}
-.prose-sum .dot{color:var(--mute)}
-.card-lead{font-size:11px;color:var(--mute);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.summary{font-size:12.5px;line-height:1.9;color:var(--ink-2);text-indent:2em;margin:0}
+.reading{padding:22px 26px}
+.reading-meta{
+  display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:12px;
+  border-bottom:1px solid var(--line-2);font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.12em;color:var(--mute);text-transform:uppercase;
+}
+.reading-meta b{color:var(--accent-ink);font-weight:700}
 
 /* 时间线 */
 .era-tabs{display:flex;gap:0;flex-wrap:wrap;border:1px solid var(--line);margin-bottom:10px;border-radius:4px;overflow:hidden;background:var(--paper-2)}
@@ -489,19 +501,26 @@ function renderHome(){
   $$('.path-item').forEach(el=>el.addEventListener('click',()=>{ state.part=el.dataset.p; state.sec=null; render(); }));
 }
 
-/* ====== 段落渲染 ====== */
+/* ====== 分段区块渲染 ====== */
 function renderProse(sec){
   const arr = sec.prose || [];
   if(arr.length){
+    let n = 0, grp = null;
     return '<div class="prose">' + arr.map(x=>{
       let body = esc(x.p).replace(/【(会议|运动|事件|著作|人物)】/g,'<span class="kind">$1</span>');
-      const h = x.h ? `<div class="prose-h">${esc(x.h)}</div>` : '';
-      return h + `<p>${body}</p>`;
+      let out = '';
+      if(x.h && x.h !== grp){
+        grp = x.h;
+        out += `<div class="grp-h">${esc(x.h)}</div>`;
+      }
+      n++;
+      const name = x.t ? `<span class="name">${esc(x.t)}</span>` : '';
+      out += `<div class="blk"><div class="blk-h"><span class="no">${String(n).padStart(2,'0')}</span>${name}</div><p>${body}</p></div>`;
+      return out;
     }).join('') + '</div>';
   }
-  // 回退：无 prose 时用紧凑段落拼接
   const sents = (sec.points||[]).filter(p=>!p.div).map(p=>esc(p.t||'')).join('');
-  return `<div class="prose"><p>${sents || '暂无内容'}</p></div>`;
+  return `<div class="prose"><div class="blk"><p>${sents || '暂无内容'}</p></div></div>`;
 }
 
 function proseSummary(sec, limit){
@@ -576,7 +595,7 @@ function renderManual(){
     <h2 class="sec-title">${hl(s.title)}</h2>
     <div class="reading-meta">
       <span>全文 <b>${chars}</b> 字</span>
-      <span>段落 <b>${(s.prose||[]).length}</b></span>
+      <span>分区 <b>${(s.prose||[]).length}</b></span>
       <span>重点 <b>${s.key||0}</b> 处</span>
     </div>
     <div class="card reading">${renderProse(s)}</div>
