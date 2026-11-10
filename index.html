@@ -167,20 +167,50 @@ mark{background:rgba(20,120,181,.2);color:inherit;padding:0 2px;border-radius:2p
 .stat .n{font-family:var(--mono);font-size:36px;font-weight:700;line-height:1;color:var(--accent-ink);letter-spacing:-1px}
 .stat .l{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--mute);text-transform:uppercase;margin-top:6px}
 
-.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-.home-card{
-  border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px 16px;
-  cursor:pointer;border-radius:6px;transition:.2s;position:relative;overflow:hidden;
+/* 首页：纵向串联学习路径 */
+.path{position:relative;padding-left:6px}
+.path-item{position:relative;display:flex;gap:14px;padding:10px 0 10px 0;cursor:pointer}
+.path-rail{position:relative;flex:0 0 34px;display:flex;flex-direction:column;align-items:center}
+.path-rail::after{content:"";position:absolute;top:30px;bottom:-20px;width:1px;background:var(--line)}
+.path-item:last-child .path-rail::after{display:none}
+.path-node{
+  width:28px;height:28px;flex:0 0 28px;border-radius:50%;border:1.5px solid var(--accent);
+  background:var(--paper);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0;transition:.2s;z-index:1;
 }
-.home-card:hover{border-color:var(--accent);background:#fff;transform:translateY(-2px);box-shadow:0 6px 20px rgba(18,50,74,.08)}
-.dark .home-card{background:rgba(21,36,51,.6)}
-.dark .home-card:hover{background:rgba(21,36,51,.9)}
-.home-card::after{content:"";position:absolute;bottom:0;left:0;height:3px;width:0;background:var(--accent);transition:width .3s}
-.home-card:hover::after{width:100%}
-.hc-top{display:flex;align-items:center;gap:7px;margin-bottom:7px}
-.hc-name{font-weight:700;font-size:13px;line-height:1.3}
-.hc-num{font-family:var(--mono);font-size:9px;color:var(--mute);margin-left:auto;letter-spacing:.08em}
-.hc-desc{font-size:11.5px;color:var(--mute);line-height:1.5}
+.path-item:hover .path-node{background:var(--accent);color:#fff;transform:scale(1.08)}
+.path-body{
+  flex:1;min-width:0;border:1px solid var(--line);border-radius:6px;padding:11px 15px;
+  background:rgba(255,255,255,.6);transition:.2s;
+}
+.dark .path-body{background:rgba(21,36,51,.6)}
+.path-item:hover .path-body{border-color:var(--accent);background:#fff;box-shadow:0 4px 16px rgba(18,50,74,.07)}
+.dark .path-item:hover .path-body{background:rgba(21,36,51,.9)}
+.path-title{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;margin-bottom:3px}
+.path-title .cnt{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--mute);letter-spacing:.08em}
+.path-desc{font-size:11.8px;color:var(--mute);line-height:1.6}
+.path-arrow{font-size:11px;color:var(--accent);opacity:0;transition:.2s;margin-left:auto}
+.path-item:hover .path-arrow{opacity:1}
+
+/* 正文段落 */
+.prose{font-size:13.8px;line-height:2.0;color:var(--ink)}
+.prose p{margin:0 0 13px;text-indent:2em}
+.prose p:last-child{margin-bottom:0}
+.prose .prose-h{
+  font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent-ink);margin:18px 0 8px;padding-left:9px;border-left:3px solid var(--accent);
+  text-indent:0;
+}
+.prose .prose-h:first-child{margin-top:0}
+.prose .kind{
+  font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.04em;
+  color:var(--accent-ink);background:rgba(20,120,181,.1);
+  border:1px solid rgba(20,120,181,.25);border-radius:3px;padding:0 4px;margin-right:2px;
+}
+.prose b.lead{font-weight:700}
+.prose-sum{font-size:12.5px;line-height:1.85;color:var(--ink-2);text-indent:2em}
+.prose-sum .dot{color:var(--mute)}
+.card-lead{font-size:11px;color:var(--mute);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
 
 /* 时间线 */
 .era-tabs{display:flex;gap:0;flex-wrap:wrap;border:1px solid var(--line);margin-bottom:10px;border-radius:4px;overflow:hidden;background:var(--paper-2)}
@@ -422,15 +452,22 @@ function renderSidebar(){
   }));
 }
 
-/* ====== 首页 ====== */
+/* ====== 首页：纵向串联的学习路径 ====== */
 function renderHome(){
-  const cards = DATA.parts.map(p=>{
+  const paths = DATA.parts.map((p,i)=>{
     const n = (p.sections||[]).length;
-    const desc = p.timeline ? '交互时间线：1840→2022 事件·人物·标志' : `${n} 个专题 · ${((p.sections||[]).reduce((a,s)=>a+(s.points||[]).length,0))} 条核心考点`;
-    return `<div class="home-card" data-p="${p.id}">
-      <div class="hc-top"><span class="part-dot" style="background:${p.color};width:9px;height:9px;border-radius:50%"></span>
-      <span class="hc-name">${esc(p.name)}</span><span class="hc-num">${n} 专题</span></div>
-      <div class="hc-desc">${esc(desc)}</div></div>`;
+    const c = (p.sections||[]).reduce((a,s)=>a+(s.points||[]).length,0);
+    const desc = p.timeline
+      ? `从 1840 到新时代，用 ${n} 个阶段串起近现代史的时间骨架`
+      : `${n} 个专题、${c} 条考点，从概念到辨析逐层展开`;
+    return `<div class="path-item" data-p="${p.id}">
+      <div class="path-rail"><div class="path-node">${String(i+1).padStart(2,'0')}</div></div>
+      <div class="path-body">
+        <div class="path-title">${esc(p.name)}<span class="cnt">${n} 专题</span>
+          <span class="path-arrow">→</span></div>
+        <div class="path-desc">${esc(desc)}</div>
+      </div>
+    </div>`;
   }).join('');
   const total = DATA.parts.reduce((a,p)=>a+(p.sections||[]).length,0);
   const pts = DATA.parts.reduce((a,p)=>a+(p.sections||[]).reduce((b,s)=>b+(s.points||[]).length,0),0);
@@ -438,18 +475,41 @@ function renderHome(){
   $('#main').innerHTML = `
     <div class="crumb">背诵手册 · 总览</div>
     <h2 class="sec-title">考研政治 · 背诵手册</h2>
-    <div class="sec-sub">肖秀荣《2027背诵手册》上册 · 点击左侧专题卡开始学习</div>
+    <div class="sec-sub">肖秀荣《2027背诵手册》上册 · 按下面的顺序往下读，一条主线走完五个板块</div>
     <div class="stat-grid">
       <div class="stat"><div class="n">${total}</div><div class="l">专题</div></div>
       <div class="stat"><div class="n">${pts}</div><div class="l">核心考点</div></div>
       <div class="stat"><div class="n">${tl}</div><div class="l">时间线节点</div></div>
     </div>
-    <div class="home-grid">${cards}</div>
+    <div class="path">${paths}</div>
     <div class="footer-note">
       数据来源：OCR 自扫描件 + 人工校订<br>
-      💡 用法：顶部搜索框可跨全部考点检索（如「量变质变」「魂脉」「遵义会议」）；切换「历年真题」tab 刷题。
+      用法：顶部搜索框跨全部考点检索（如「量变质变」「魂脉」「遵义会议」）；切换「历年真题」tab 刷题。
     </div>`;
-  $$('.home-card').forEach(el=>el.addEventListener('click',()=>{ state.part=el.dataset.p; state.sec=null; render(); }));
+  $$('.path-item').forEach(el=>el.addEventListener('click',()=>{ state.part=el.dataset.p; state.sec=null; render(); }));
+}
+
+/* ====== 段落渲染 ====== */
+function renderProse(sec){
+  const arr = sec.prose || [];
+  if(arr.length){
+    return '<div class="prose">' + arr.map(x=>{
+      let body = esc(x.p).replace(/【(会议|运动|事件|著作|人物)】/g,'<span class="kind">$1</span>');
+      const h = x.h ? `<div class="prose-h">${esc(x.h)}</div>` : '';
+      return h + `<p>${body}</p>`;
+    }).join('') + '</div>';
+  }
+  // 回退：无 prose 时用紧凑段落拼接
+  const sents = (sec.points||[]).filter(p=>!p.div).map(p=>esc(p.t||'')).join('');
+  return `<div class="prose"><p>${sents || '暂无内容'}</p></div>`;
+}
+
+function proseSummary(sec, limit){
+  const arr = sec.prose || [];
+  let text = arr.length ? arr.map(x=>x.p).join('') : (sec.points||[]).map(p=>p.t||'').join('');
+  text = text.replace(/[【】]/g,'');
+  if(text.length > limit) text = text.slice(0, limit) + '…';
+  return `<p class="summary">${esc(text)}</p>`;
 }
 
 /* ====== 时间线 ====== */
@@ -485,42 +545,44 @@ function renderManual(){
   if(!state.part){ renderHome(); return; }
   const p = DATA.parts.find(x=>x.id===state.part);
   if(!p){ renderHome(); return; }
-  // 板块总览
+  // 板块总览：每个专题一段导读文字，而非四条罗列
   if(!state.sec){
-    const tlBlock = p.timeline ? `<div class="card"><div class="crumb">交互时间线</div>
+    const tlBlock = p.timeline ? `<div class="card reading"><div class="crumb">交互时间线</div>
       <h2 class="sec-title sm">史纲 · 重要事件时间线</h2>
       <div class="sec-sub">按时期/重要度筛选</div>${renderTimeline(p)}</div>` : '';
     const secs = (p.sections||[]).map(s=>{
-      const top = (s.points||[]).filter(pt=>!pt.div).slice(0,4).map(pt=>`<li>${starsBadge(pt.s)}<span class="ptext">${hl(pt.t)}</span></li>`).join('');
-      return `<div class="card"><div class="crumb">${esc(s.no)}</div><h2 class="sec-title sm">${hl(s.title)}</h2>
-        <ul class="plist">${top}</ul>
-        <div style="text-align:center;margin-top:8px">
-          <button class="chip" data-goto="${esc(s.no)}">查看全部 ${(s.points||[]).length} 条 →</button>
-        </div></div>`;
+      return `<div class="card reading" data-goto="${esc(s.no)}" style="cursor:pointer">
+        <div class="crumb">${esc(s.no)}${s.key?` · ${s.key} 个重点`:''}</div>
+        <h2 class="sec-title sm">${hl(s.title)}</h2>
+        ${proseSummary(s, 150)}
+        <div class="path-arrow" style="opacity:1;text-align:right;margin-top:6px">继续阅读 →</div>
+      </div>`;
     }).join('');
     $('#main').innerHTML = `<div class="crumb">${esc(p.short)}</div>
       <h2 class="sec-title">${esc(p.name)}</h2>
-      <div class="sec-sub">${(p.sections||[]).length} 个专题</div>
+      <div class="sec-sub">${(p.sections||[]).length} 个专题 · 依次阅读</div>
       ${tlBlock}${secs}`;
     bindTimeline();
     $$('[data-goto]').forEach(el=>el.addEventListener('click',()=>{ state.sec=el.dataset.goto; render(); window.scrollTo({top:0,behavior:'smooth'}); }));
     return;
   }
-  // 单专题详情
+  // 单专题：连贯段落
   const s = (p.sections||[]).find(x=>x.no===state.sec);
   if(!s){ renderHome(); return; }
-  const pts = (s.points||[]).map(pt=>pt.div
-    ? `<li class="pl-div">${esc(pt.div)}</li>`
-    : `<li>${starsBadge(pt.s)}<span class="ptext">${hl(pt.t)}</span></li>`).join('');
   const arr = p.sections||[]; const i = arr.findIndex(x=>x.no===s.no);
   const prev = arr[i-1], next = arr[i+1];
+  const chars = (s.prose||[]).reduce((a,x)=>a+(x.p||'').length,0);
   $('#main').innerHTML = `<div class="crumb">${esc(p.short)} / ${esc(s.no)}</div>
     <h2 class="sec-title">${hl(s.title)}</h2>
-    <div class="sec-sub">${(s.points||[]).length} 条核心考点 · ★★★★★ 分析题 / ★★★★ 多选 / ★★★ 单选</div>
-    <div class="card"><ul class="plist">${pts}</ul></div>
+    <div class="reading-meta">
+      <span>全文 <b>${chars}</b> 字</span>
+      <span>段落 <b>${(s.prose||[]).length}</b></span>
+      <span>重点 <b>${s.key||0}</b> 处</span>
+    </div>
+    <div class="card reading">${renderProse(s)}</div>
     <div style="display:flex;gap:10px;margin-top:18px">
-      ${prev?`<button class="chip" data-goto="${esc(prev.no)}">← ${esc(prev.no)} ${esc(prev.title).slice(0,10)}</button>`:''}
-      ${next?`<button class="chip" data-goto="${esc(next.no)}" style="margin-left:auto">${esc(next.no)} ${esc(next.title).slice(0,10)} →</button>`:''}
+      ${prev?`<button class="chip" data-goto="${esc(prev.no)}">← ${esc(prev.no)}</button>`:''}
+      ${next?`<button class="chip" data-goto="${esc(next.no)}" style="margin-left:auto">${esc(next.no)} ${esc(next.title).slice(0,12)} →</button>`:''}
     </div>`;
   $$('[data-goto]').forEach(el=>el.addEventListener('click',()=>{ state.sec=el.dataset.goto; render(); window.scrollTo({top:0,behavior:'smooth'}); }));
 }
@@ -774,12 +836,14 @@ function doSearch(q){
         <div class="tl-ev">${hl(r.tl.y)} ${hl(r.tl.e)} ${starsBadge(r.tl.s)}</div>
         <div class="tl-m">${hl(r.tl.m)}</div></div>`;
     }
-    const pts = (r.pts.length?r.pts:(r.s.points||[]).filter(pt=>pt.t).slice(0,3))
-      .map(pt=>`<li>${starsBadge(pt.s)}<span class="ptext">${hl(pt.t)}</span></li>`).join('');
-    return `<div class="card" style="cursor:pointer" data-manual="${r.p.id}" data-sec="${r.s.no}">
+    const body = r.s.prose && r.s.prose.length
+      ? r.s.prose.map(x=>x.p).join('')
+      : (r.s.points||[]).map(p=>p.t||'').join('');
+    const brief = body.length > 220 ? body.slice(0,220) + '…' : body;
+    return `<div class="card reading" style="cursor:pointer" data-manual="${r.p.id}" data-sec="${r.s.no}">
       <div class="crumb">${esc(r.p.short)} / ${esc(r.s.no)}</div>
       <h2 class="sec-title sm">${hl(r.s.title)}</h2>
-      <ul class="plist">${pts}</ul></div>`;
+      <p class="summary">${hl(brief.replace(/[【】]/g,''))}</p></div>`;
   }).join('');
 
   $('#main').innerHTML = `<div class="crumb">搜索</div><h2 class="sec-title">「${esc(state.q)}」 · ${results.length} 条结果</h2>
